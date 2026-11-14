@@ -29,7 +29,7 @@ def test_agent_sees_itself_below_the_eye():
     obs = env.reset()
     row, col = below_eye_pixel(env)
     for i in range(2):
-        expected = torch.tensor(AGENT_COLORS[i]).expand(4, 3)
+        expected = torch.tensor(AGENT_COLORS[i], device=env.device).expand(4, 3)
         assert torch.allclose(obs[i][:, row, col], expected, atol=1e-5)
 
 
@@ -69,14 +69,14 @@ def test_spectator_is_a_ghost():
     spectator.set_pos(agent.state.pos + 0.15 * ahead, batch_index=None)
     spectator.set_rot(heading.clone(), batch_index=None)
     before = agent.state.pos.clone()
-    obs, _, _, _ = env.step([torch.zeros(1, 2), torch.zeros(1, 2)])
+    obs, _, _, _ = env.step([torch.zeros(1, 2, device=env.device)] * 2)
     assert torch.allclose(agent.state.pos, before, atol=1e-6)  # not pushed away
 
     # The agent does not see the spectator; the spectator sees itself.
     row, col = below_eye_pixel(env)
-    assert torch.allclose(obs[0][0, row, col], torch.tensor(AGENT_COLORS[0]), atol=1e-5)
-    assert torch.allclose(obs[1][0, row, col], torch.tensor(SPECTATOR_COLOR), atol=1e-5)
-    assert not (obs[0] == torch.tensor(SPECTATOR_COLOR)).all(-1).any()
+    assert torch.allclose(obs[0][0, row, col], torch.tensor(AGENT_COLORS[0], device=env.device), atol=1e-5)
+    assert torch.allclose(obs[1][0, row, col], torch.tensor(SPECTATOR_COLOR, device=env.device), atol=1e-5)
+    assert not (obs[0] == torch.tensor(SPECTATOR_COLOR, device=env.device)).all(-1).any()
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="needs a GPU")
