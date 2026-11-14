@@ -89,3 +89,8 @@ When these conflict, simplicity and compute win over features.
   a default suggestion, before acting.
 - **Docs are append-only.** **[Kumar]** Existing content is not removed. A
   change of intention is appended as a pivot, and only after it has been agreed.
+- **Containerizable, not hardware-agnostic.** **[Kumar]** "Machine independent"
+  means the code runs the same inside a container, with nothing tied to one
+  person's machine: no personal paths, usernames or setup details in the repo.
+  Depending on Linux or an NVIDIA GPU with CUDA is fine. Personal measurements
+  and the research journey may be documented, as an example of a configuration.
