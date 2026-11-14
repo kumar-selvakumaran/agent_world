@@ -77,3 +77,15 @@ When these conflict, simplicity and compute win over features.
   run is written out as a command that can be pasted.
 - **`scratch/` is for throwaway work.** **[Built]** Its contents are ignored
   by git; `outputs/` likewise.
+- **One branch per effort.** **[Kumar]** Each functional change or effort gets
+  its own branch off `main`, with small atomic commits, and is merged into
+  `main` when done. Until CI exists this is a local merge; once it exists, a
+  pull request that passes CI will be required.
+- **Probe before concluding.** **[Kumar]** To understand or investigate
+  something, write a throwaway script `scratch/<task>.py` that writes its
+  output to a text file in `scratch/`, and read that.
+- **Raise gaps, indexed.** **[Kumar]** Ambiguities, uncertainties and blockers
+  are raised as numbered questions (Q), concerns (C) or blockers (B), each with
+  a default suggestion, before acting.
+- **Docs are append-only.** **[Kumar]** Existing content is not removed. A
+  change of intention is appended as a pivot, and only after it has been agreed.

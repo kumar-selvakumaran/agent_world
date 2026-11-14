@@ -179,6 +179,11 @@ world-steps per second at 64 worlds. Rendering is nearly all of the cost
 (physics about 1 ms per batched step). Not yet measured on a GPU; see
 [../benchmark.md](../benchmark.md).
 
+**Update 2026-11-14 [Built]:** measured on a GPU (RTX 3050 Laptop, 4 GB), 256
+worlds, 1 agent, 64x48 view: about 3,480 world-steps per second, against about
+478 on the CPU of the same machine. GPU memory (4 GB) bounds the number of
+parallel worlds. See [journey.md](journey.md), section 10.
+
 ## Known limits of VMAS **[Agreed]**
 
 - 2D only.
