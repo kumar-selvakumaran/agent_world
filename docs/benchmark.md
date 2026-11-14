@@ -77,3 +77,21 @@ first:
 ```bash
 uv run python scripts/benchmark.py --num-envs 512
 ```
+
+## Example: how far the worlds can scale
+
+Measured on an NVIDIA RTX 3050 Laptop GPU (4 GB, Windows), random actions,
+64x48 view. Memory is about 1.3 MiB per world per agent-view, and grows
+linearly with `--num-envs`:
+
+| Worlds | 1 agent: peak memory, world-steps/s | 2 agents: peak memory, world-steps/s |
+| --- | --- | --- |
+| 256 | 0.34 GiB, 3,612 | 0.36 GiB, 1,848 |
+| 1024 | 1.35 GiB, 5,036 | 1.42 GiB, 2,334 |
+| 2048 | 2.70 GiB, 5,252 | 2.84 GiB, 2,408 |
+| 4096 | 5.40 GiB, 949 | 5.68 GiB, 442 |
+| 8192 | 10.79 GiB, 415 | 11.35 GiB, 184 |
+
+Above the GPU's memory there is no error here: the driver spills into system
+RAM and throughput falls about five times. Watch `world-steps/s` as well as
+errors, and stay under the memory of your GPU.

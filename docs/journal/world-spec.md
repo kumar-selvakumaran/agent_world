@@ -184,6 +184,13 @@ worlds, 1 agent, 64x48 view: about 3,480 world-steps per second, against about
 478 on the CPU of the same machine. GPU memory (4 GB) bounds the number of
 parallel worlds. See [journey.md](journey.md), section 10.
 
+**Update 2026-11-14 [Built]:** on the same GPU, memory grows linearly at about
+1.3 MiB per world per agent-view, and throughput stops rising at about 2,048
+worlds (about 5,250 world-steps/s, 1 agent, 2.7 GiB). Beyond the 4 GB the run
+does not fail but slows about five times. Table in
+[../benchmark.md](../benchmark.md). Chunking the render was considered and set
+aside for now: **[Dropped]** because the GPU saturates before memory limits it.
+
 ## Known limits of VMAS **[Agreed]**
 
 - 2D only.
