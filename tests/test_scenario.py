@@ -1,7 +1,7 @@
 import torch
 
 from agent_world import CameraConfig, WorldConfig, make_env
-from agent_world.scenario import AGENT_COLORS
+from agent_world.scenario import AGENT_COLORS, SPECTATOR_COLOR
 
 CAMERA = CameraConfig(width=48, height=32)
 
@@ -45,7 +45,7 @@ def test_stepping_moves_agent_and_changes_view():
 
 
 def test_agents_stay_inside_the_room():
-    cfg = WorldConfig(n_agents=3, camera=CAMERA)
+    cfg = WorldConfig(n_agents=3, spectator=True, camera=CAMERA)
     env = make_env(num_envs=8, seed=1, config=cfg)
     env.reset()
     for _ in range(150):
@@ -53,3 +53,26 @@ def test_agents_stay_inside_the_room():
     limit = cfg.arena_size / 2 - cfg.wall_thickness / 2 - cfg.agent_radius
     for agent in env.agents:
         assert agent.state.pos.abs().max() <= limit + 1e-2
+
+
+def test_spectator_is_a_ghost():
+    cfg = WorldConfig(n_agents=1, n_obstacles=0, spectator=True, camera=CAMERA)
+    env = make_env(num_envs=1, seed=0, config=cfg)
+    env.reset()
+    agent, spectator = env.agents
+    assert not spectator.collide
+
+    # Overlap the spectator with the agent, directly in front of it.
+    heading = agent.state.rot
+    ahead = torch.cat((torch.cos(heading), torch.sin(heading)), dim=-1)
+    spectator.set_pos(agent.state.pos + 0.15 * ahead, batch_index=None)
+    spectator.set_rot(heading.clone(), batch_index=None)
+    before = agent.state.pos.clone()
+    obs, _, _, _ = env.step([torch.zeros(1, 2), torch.zeros(1, 2)])
+    assert torch.allclose(agent.state.pos, before, atol=1e-6)  # not pushed away
+
+    # The agent does not see the spectator; the spectator sees itself.
+    row, col = below_eye_pixel(env)
+    assert torch.allclose(obs[0][0, row, col], torch.tensor(AGENT_COLORS[0]), atol=1e-5)
+    assert torch.allclose(obs[1][0, row, col], torch.tensor(SPECTATOR_COLOR), atol=1e-5)
+    assert not (obs[0] == torch.tensor(SPECTATOR_COLOR)).all(-1).any()

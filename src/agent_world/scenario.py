@@ -4,6 +4,10 @@ A walled square room holding a few static obstacles and one or more agents.
 Agents steer like a vehicle (forward speed, turn rate) and see the world
 through a third-person camera (see :mod:`agent_world.camera`).
 
+With ``spectator=True`` one extra agent, the spectator, is added: it moves and
+sees exactly like the others, but passes through everything and is invisible
+to everyone but itself. It is meant for a human exploring the world.
+
 There is no task yet: the reward is zero. This file only wires entities,
 physics and observation together; the camera and ray casting live in their own
 modules.
@@ -38,6 +42,8 @@ OBSTACLE_COLORS: list[RGB] = [
     (0.75, 0.45, 0.30),
 ]
 WALL_COLOR: RGB = (0.50, 0.46, 0.42)
+SPECTATOR_COLOR: RGB = (0.95, 0.95, 0.95)
+SPECTATOR_NAME = "spectator"
 
 
 @dataclass(frozen=True)
@@ -46,6 +52,9 @@ class WorldConfig:
     arena_size: float = 4.0
     """Side length of the square room."""
     n_obstacles: int = 6
+    spectator: bool = False
+    """Add a ghost agent for a human observer. Leave off for training: every
+    agent costs one rendered view per step."""
 
     agent_radius: float = 0.1
     agent_height: float = 0.25
@@ -75,7 +84,8 @@ class Scenario(BaseScenario):
         ScenarioUtils.check_kwargs_consumed(kwargs)
         self.cfg: WorldConfig = cfg
 
-        # Hard outer bounds, just inside the walls, so nothing can leave the room.
+        # Walls stop ordinary agents; these bounds also stop the spectator,
+        # which passes through walls, from leaving the room.
         bound = cfg.arena_size / 2 - cfg.wall_thickness / 2 - cfg.agent_radius
         world = World(batch_dim, device, x_semidim=bound, y_semidim=bound)
         # (entity, height) for everything that can be seen, in a fixed order.
@@ -83,6 +93,8 @@ class Scenario(BaseScenario):
 
         for i in range(cfg.n_agents):
             self._add_agent(world, f"agent_{i}", AGENT_COLORS[i % len(AGENT_COLORS)])
+        if cfg.spectator:
+            self._add_agent(world, SPECTATOR_NAME, SPECTATOR_COLOR, ghost=True)
 
         self._walls = [
             self._add_landmark(
@@ -108,7 +120,7 @@ class Scenario(BaseScenario):
         self._local_dirs = local_ray_directions(cfg.camera, device)
         return world
 
-    def _add_agent(self, world: World, name: str, color: RGB) -> None:
+    def _add_agent(self, world: World, name: str, color: RGB, ghost: bool = False) -> None:
         cfg = self.cfg
         agent = Agent(
             name=name,
@@ -116,6 +128,7 @@ class Scenario(BaseScenario):
             dynamics=DiffDrive(world),
             u_range=[1.0, 1.0],
             u_multiplier=[cfg.max_speed, cfg.max_turn_rate],
+            collide=not ghost,
             color=color,
         )
         world.add_agent(agent)
@@ -145,6 +158,10 @@ class Scenario(BaseScenario):
         self._half_size = torch.tensor(half_size, device=device)
         self._is_box = torch.tensor(is_box, device=device)
         self._height = torch.tensor([h for _, h in self._visible], device=device)
+        self._index = {e.name: i for i, (e, _) in enumerate(self._visible)}
+        self._is_ghost = torch.tensor(
+            [e.name == SPECTATOR_NAME for e, _ in self._visible], device=device
+        )
         self._color = torch.tensor(
             [
                 e.color.value if hasattr(e.color, "value") else e.color
@@ -206,7 +223,12 @@ class Scenario(BaseScenario):
         origin, dirs = world_rays(
             cam, self._local_dirs, agent.state.pos, agent.state.rot.squeeze(-1)
         )
-        rgb, depth = render(origin, dirs, self.scene(), cam.max_range, self.cfg.palette)
+        # Ghosts are hidden from everyone except themselves.
+        visible = ~self._is_ghost
+        visible[self._index[agent.name]] = True
+        rgb, depth = render(
+            origin, dirs, self.scene(), cam.max_range, self.cfg.palette, visible
+        )
         batch = rgb.shape[0]
         return (
             rgb.reshape(batch, cam.height, cam.width, 3),
