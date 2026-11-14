@@ -25,6 +25,7 @@ def main() -> None:
     parser.add_argument("--width", type=int, default=240, help="view width in pixels")
     parser.add_argument("--height", type=int, default=160, help="view height in pixels")
     parser.add_argument("--scale", type=int, default=4, help="window = view * scale")
+    parser.add_argument("--device", default=None, help="default: GPU if available")
     parser.add_argument("--max-frames", type=int, default=None, help="quit after this many frames")
     args = parser.parse_args()
 
@@ -33,7 +34,7 @@ def main() -> None:
         spectator=True,
         camera=CameraConfig(width=args.width, height=args.height),
     )
-    env = make_env(num_envs=1, seed=args.seed, config=config)
+    env = make_env(num_envs=1, device=args.device, seed=args.seed, config=config)
     state = {"obs": env.reset(), "frames": 0}
 
     window = pyglet.window.Window(
@@ -48,8 +49,9 @@ def main() -> None:
             return
         forward = (keys[key.W] or keys[key.UP]) - (keys[key.S] or keys[key.DOWN])
         turn = (keys[key.A] or keys[key.LEFT]) - (keys[key.D] or keys[key.RIGHT])
-        actions = [torch.zeros(1, 2) for _ in range(args.n_agents)]
-        actions.append(torch.tensor([[float(forward), float(turn)]]))  # spectator is last
+        actions = [torch.zeros(1, 2, device=env.device) for _ in range(args.n_agents)]
+        # The spectator is the last agent.
+        actions.append(torch.tensor([[float(forward), float(turn)]], device=env.device))
         state["obs"], _, _, _ = env.step(actions)
         state["frames"] += 1
         if args.max_frames is not None and state["frames"] >= args.max_frames:

@@ -29,15 +29,18 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--scale", type=int, default=6)
     parser.add_argument("--out", type=Path, default=Path("outputs"))
+    parser.add_argument("--device", default=None, help="default: GPU if available")
     args = parser.parse_args()
 
-    env = make_env(num_envs=1, seed=args.seed, config=WorldConfig(n_agents=args.n_agents))
+    env = make_env(
+        num_envs=1, device=args.device, seed=args.seed, config=WorldConfig(n_agents=args.n_agents)
+    )
     obs = env.reset()
     frames = [to_image(obs[0][0], args.scale)]
     for _ in range(args.steps):
         # Agent 0 drives in a gentle arc; the others turn on the spot.
-        actions = [torch.tensor([[0.6, 0.4]])] + [
-            torch.tensor([[0.0, 1.0]]) for _ in range(args.n_agents - 1)
+        actions = [torch.tensor([[0.6, 0.4]], device=env.device)] + [
+            torch.tensor([[0.0, 1.0]], device=env.device) for _ in range(args.n_agents - 1)
         ]
         obs, _, _, _ = env.step(actions)
         frames.append(to_image(obs[0][0], args.scale))
