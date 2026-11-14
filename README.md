@@ -16,6 +16,7 @@ uv sync                               # creates .venv and installs everything
 uv run pytest                         # tests
 uv run python scripts/view_demo.py    # saves outputs/view.gif (what agent 0 sees)
 uv run python scripts/explore.py      # walk around yourself (needs a display)
+uv run python scripts/benchmark.py    # world-steps per second on this machine
 ```
 
 ## The world
@@ -31,8 +32,13 @@ from agent_world import WorldConfig, make_env
 
 env = make_env(num_envs=32, config=WorldConfig(n_agents=2))
 obs = env.reset()                     # one tensor per agent: [32, 48, 64, 3]
-obs, rewards, dones, info = env.step([torch.zeros(32, 2), torch.zeros(32, 2)])
+actions = [torch.zeros(32, 2, device=env.device) for _ in env.agents]
+obs, rewards, dones, info = env.step(actions)
 ```
+
+`make_env` puts everything (physics and rendering) on the GPU when there is
+one, and on the CPU otherwise; pass `device="cpu"` or `device="cuda:1"` to
+choose. Observations come back on `env.device`, so create actions there too.
 
 ### The view
 
@@ -75,4 +81,5 @@ changed or replaced without touching the world, and the other way round.
 Rendering dominates: physics is about 1 ms per batched step, the view is
 `pixels x entities` ray tests per world. On 2 CPU threads, a 64x48 view with
 11 entities runs at roughly 750 world-steps per second. It is all batched
-tensor code, so it should run much faster on a GPU, but that is not measured yet.
+tensor code, so it should run much faster on a GPU; measure it on your machine
+with `scripts/benchmark.py`.
