@@ -2,6 +2,8 @@
 
     uv run python scripts/explore.py
 
+The view is the training size (64x48); --scale enlarges the window only.
+
 Controls: W/S or Up/Down move, A/D or Left/Right turn, R resets, Esc quits.
 The spectator sees what any agent would see, but passes through everything
 and is invisible to the other agents, which stand still here.
@@ -22,8 +24,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--n-agents", type=int, default=2)
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--width", type=int, default=240, help="view width in pixels")
-    parser.add_argument("--height", type=int, default=160, help="view height in pixels")
+    parser.add_argument("--width", type=int, default=CameraConfig.width, help="view width in pixels")
+    parser.add_argument("--height", type=int, default=CameraConfig.height, help="view height in pixels")
     parser.add_argument("--scale", type=int, default=4, help="window = view * scale")
     parser.add_argument("--device", default=None, help="default: GPU if available")
     parser.add_argument("--max-frames", type=int, default=None, help="quit after this many frames")
