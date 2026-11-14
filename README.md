@@ -19,6 +19,19 @@ uv run python scripts/explore.py      # walk around yourself (needs a display)
 uv run python scripts/benchmark.py    # world-steps per second on this machine
 ```
 
+### PyTorch and the GPU
+
+`pyproject.toml` takes `torch` from PyTorch's CUDA 12.8 index
+(`https://download.pytorch.org/whl/cu128`), because the default PyPI wheel on
+Windows is CPU-only. This suits an NVIDIA GPU on Windows or Linux. On a machine
+without one it still runs, on the CPU; on a platform that index does not cover
+(for example macOS), remove the `[tool.uv.sources]` and `[[tool.uv.index]]`
+entries and run `uv sync` again. Check what you got with:
+
+```bash
+uv run python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+```
+
 ## The world
 
 A walled square room with a few static obstacles (boxes and cylinders of
