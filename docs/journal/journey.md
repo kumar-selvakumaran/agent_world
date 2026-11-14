@@ -184,6 +184,17 @@ with building an environment to test such systems.
 - Standing instructions given this day are recorded in
   [principles.md](principles.md).
 
+## 10. First GPU run (2026-11-14)
+
+- Found that the environment held a CPU-only build of PyTorch, so the GPU had
+  never been used. Pointed torch at the CUDA index (cu128) in `pyproject.toml`.
+- **[Built]** Measured on an RTX 3050 Laptop GPU (4 GB), 256 worlds, 1 agent,
+  64x48 view: about 3,480 world-steps per second on the GPU, against about 478
+  on the CPU of the same machine. This partly settles the GPU thread below; it
+  says nothing yet about whether that is enough for large-scale training.
+- **[Open]** The 4 GB of GPU memory bounds the number of parallel worlds.
+  Chunking the rendering is one way round it; not yet investigated.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.
