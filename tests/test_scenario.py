@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 from agent_world import CameraConfig, WorldConfig, make_env
@@ -76,3 +77,14 @@ def test_spectator_is_a_ghost():
     assert torch.allclose(obs[0][0, row, col], torch.tensor(AGENT_COLORS[0]), atol=1e-5)
     assert torch.allclose(obs[1][0, row, col], torch.tensor(SPECTATOR_COLOR), atol=1e-5)
     assert not (obs[0] == torch.tensor(SPECTATOR_COLOR)).all(-1).any()
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs a GPU")
+def test_runs_on_gpu():
+    cfg = WorldConfig(n_agents=2, spectator=True, camera=CAMERA)
+    env = make_env(num_envs=4, config=cfg)  # no device given: picks the GPU
+    obs = env.reset()
+    obs, rewards, _, _ = env.step([torch.zeros(4, 2, device=env.device) for _ in env.agents])
+    assert all(o.device.type == "cuda" for o in obs + rewards)
+    row, col = below_eye_pixel(env)
+    assert torch.allclose(obs[0][:, row, col].cpu(), torch.tensor(AGENT_COLORS[0]).expand(4, 3), atol=1e-5)
