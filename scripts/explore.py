@@ -70,6 +70,7 @@ def main() -> None:
 
     pyglet.clock.schedule_interval(step, 1 / 20)
     pyglet.app.run()
+    window.close()
 
 
 if __name__ == "__main__":
