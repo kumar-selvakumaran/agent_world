@@ -334,9 +334,10 @@ class Scenario(BaseScenario):
         for agent in self.world.agents:
             heading = (torch.rand(n, 1, device=self.world.device) * 2 - 1) * torch.pi
             agent.set_rot(heading, batch_index=env_index)
-        i = slice(None) if env_index is None else env_index
-        self._food_xy[i] = self._sample_food(n).reshape(-1, *self._food_xy.shape[1:])
-        self._food_timer[i] = 0.0
+        if self.cfg.food_per_room:
+            i = slice(None) if env_index is None else env_index
+            self._food_xy[i] = self._sample_food(n).reshape(-1, *self._food_xy.shape[1:])
+            self._food_timer[i] = 0.0
 
     def _sample_food(self, n: int) -> Tensor:
         cfg = self.cfg

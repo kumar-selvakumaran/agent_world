@@ -293,3 +293,10 @@ def test_food_visible_to_agent():
     rgb = sc.view(agent)[0]
     ochre = torch.tensor((0.80, 0.58, 0.12), device=env.device)
     assert ((rgb - ochre).abs().sum(-1) < 0.05).flatten(1).any(1).all()
+
+
+def test_food_and_chasers_can_be_switched_off():
+    cfg = WorldConfig(food_per_room=0, chasers_per_room=0, camera=CAMERA)
+    env = make_env(num_envs=2, device="cpu", config=cfg)
+    env.reset()
+    env.step([torch.zeros(2, 2) for _ in env.agents])
