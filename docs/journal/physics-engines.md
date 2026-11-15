@@ -164,3 +164,10 @@ head-on, slanted walls at 45 and 30 degrees, a static box and a static cylinder.
   degree wall. Collision force 10,000 with 20 substeps also held head-on.
 - **[Open]** The 30 degree result depended on the start distance, so it is
   marginal. Substeps multiply the cost of physics.
+
+### Decision: contact settings (later on 2026-11-14)
+
+- **[Kumar]** Collision force 1,000 with 5 substeps by default (`WorldConfig`
+  `collision_force`, `substeps`).
+- **[Built]** Cost on the benchmark (256 worlds, 1 agent, 64x48 view, same GPU):
+  2,819 to 1,422 world-steps/s, about 50% slower.
