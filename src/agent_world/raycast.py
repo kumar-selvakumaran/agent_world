@@ -31,6 +31,8 @@ class Scene:
     height: Tensor  # [E]
     is_box: Tensor  # [E] bool; False = cylinder
     color: Tensor  # [E, 3] in [0, 1]
+    color2: Tensor | None = None  # [E, 3] second colour of striped entities
+    stripes: Tensor | None = None  # [E] int; bands across the body along its forward axis, 0 = plain
 
 
 @dataclass(frozen=True)
@@ -162,7 +164,10 @@ def render(
     hit_z = origin[:, None, 2] + t_entity.nan_to_num(posinf=0.0) * dirs[..., 2]
     on_top = hit_z >= scene.height[idx] - 1e-4
     shade = torch.where(on_top, 1.0, palette.side_shade)[..., None]
-    entity_rgb = scene.color[idx] * shade
+    entity_color = scene.color[idx]
+    if scene.stripes is not None:
+        entity_color = _striped(entity_color, origin, dirs, t_entity, idx, scene)
+    entity_rgb = entity_color * shade
 
     depth = torch.minimum(t_entity, t_ground)
     rgb = torch.where((t_entity <= t_ground)[..., None], entity_rgb, ground_rgb)
@@ -170,3 +175,16 @@ def render(
         (depth > max_range)[..., None], origin.new_tensor(palette.background), rgb
     )
     return rgb, depth.clamp(max=max_range)
+
+
+def _striped(color: Tensor, origin: Tensor, dirs: Tensor, t: Tensor, idx: Tensor, scene: Scene) -> Tensor:
+    """Alternate ``color`` and ``color2`` in bands along each hit entity's forward axis."""
+    rows = torch.arange(idx.shape[0], device=idx.device)[:, None]
+    hit_xy = origin[:, None, :2] + t.nan_to_num(posinf=0.0)[..., None] * dirs[..., :2]
+    rel = hit_xy - scene.pos[rows, idx]
+    rot = scene.rot[rows, idx]
+    along = rel[..., 0] * torch.cos(rot) + rel[..., 1] * torch.sin(rot)
+    n = scene.stripes[idx]
+    band = torch.floor((along / (2 * scene.half_size[idx, 0]) + 0.5) * n).clamp(min=0).long()
+    second = (n > 0) & (band % 2 == 1)
+    return torch.where(second[..., None], scene.color2[idx], color)
