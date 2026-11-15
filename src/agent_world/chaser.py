@@ -88,40 +88,49 @@ class Chasers:
         dt = world.dt
         agents = self._agents()
         apos = torch.stack([a.state.pos for a in agents], dim=1)  # [B, A, 2]
+        cpos = torch.stack([c.state.pos for c in self.landmarks], dim=1)  # [B, C, 2]
+        B, C = cpos.shape[:2]
+        A = apos.shape[1]
         speed = cfg.chaser_speed_fraction * cfg.max_speed
         max_turn = cfg.max_turn_rate * dt
         self.cooldown = (self.cooldown - dt).clamp(min=0)
         self.touched.zero_()
+
+        delta = apos[:, None] - cpos[:, :, None]  # [B, C, A, 2] chaser to agent
+        dist = delta.norm(dim=-1)  # [B, C, A]
+        d, near = dist.min(-1)  # nearest agent, [B, C]
+        vec = delta.gather(2, near[..., None, None].expand(B, C, 1, 2))[:, :, 0]
+        want = torch.atan2(vec[..., 1], vec[..., 0])
+        err = torch.remainder(want - self.heading + math.pi, 2 * math.pi) - math.pi
+        # One line-of-sight ray per chaser, all cast in a single call.
+        origin = torch.cat([cpos, torch.full_like(cpos[..., :1], 0.05)], -1).reshape(B * C, 3)
+        ray = torch.cat([vec / d[..., None].clamp(min=1e-6), torch.zeros_like(d)[..., None]], -1).reshape(B * C, 1, 3)
+        scene = Scene(
+            occluders.pos.repeat_interleave(C, 0), occluders.rot.repeat_interleave(C, 0),
+            occluders.half_size, occluders.height, occluders.is_box, occluders.color,
+        )
+        blocked = intersect(origin, ray, scene).amin(-1).reshape(B, C) < d
+        sees = (d <= cfg.chaser_view_range) & (err.abs() <= math.radians(cfg.chaser_half_fov_deg)) & ~blocked
+
+        heading = self.heading + torch.where(sees, err.clamp(-max_turn, max_turn), 0.0)
+        for p in self.patches:
+            heading = heading + p.rate * dt * inside(cpos, p)
+        self.heading = torch.remainder(heading + math.pi, 2 * math.pi) - math.pi
+        vel = torch.stack([self.heading.cos(), self.heading.sin()], -1) * speed * sees[..., None]
         for i, c in enumerate(self.landmarks):
-            pos = c.state.pos
-            delta = apos - pos[:, None]
-            dist = delta.norm(dim=-1)
-            near = dist.argmin(-1)
-            rows = torch.arange(pos.shape[0], device=pos.device)
-            d, vec = dist[rows, near], delta[rows, near]
-            want = torch.atan2(vec[:, 1], vec[:, 0])
-            err = torch.remainder(want - self.heading[:, i] + math.pi, 2 * math.pi) - math.pi
-            origin = torch.cat([pos, torch.full_like(pos[:, :1], 0.05)], -1)
-            ray = torch.cat([vec / d[:, None].clamp(min=1e-6), torch.zeros_like(d)[:, None]], -1)[:, None]
-            blocked = intersect(origin, ray, occluders).amin(-1)[:, 0] < d
-            sees = (d <= cfg.chaser_view_range) & (err.abs() <= math.radians(cfg.chaser_half_fov_deg)) & ~blocked
+            c.set_rot(self.heading[:, i : i + 1], batch_index=None)
+            c.set_vel(vel[:, i], batch_index=None)
 
-            heading = self.heading[:, i] + torch.where(sees, err.clamp(-max_turn, max_turn), 0.0)
-            for p in self.patches:
-                heading = heading + p.rate * dt * inside(pos, p)
-            heading = torch.remainder(heading + math.pi, 2 * math.pi) - math.pi
-            self.heading[:, i] = heading
-            c.set_rot(heading[:, None], batch_index=None)
-            fwd = torch.stack([heading.cos(), heading.sin()], -1)
-            c.set_vel(fwd * speed * sees[:, None], batch_index=None)
-
-            for j, a in enumerate(agents):
-                hit = world.is_overlapping(c, a) & (self.cooldown[:, i] <= 0)
-                direction = delta[:, j] / dist[:, j, None].clamp(min=1e-6)
-                self.push_dir[:, j] = torch.where(hit[:, None], direction, self.push_dir[:, j])
-                self.push_left[:, j] = torch.where(hit, cfg.bump_steps, self.push_left[:, j])
-                self.touched[j] |= hit
-                self.cooldown[:, i] = torch.where(hit, cfg.bump_cooldown, self.cooldown[:, i])
+        # Touches: the last chaser to touch an agent decides the direction of the shove.
+        hit = (dist < 2 * cfg.agent_radius) & (self.cooldown[..., None] <= 0)  # [B, C, A]
+        any_hit = hit.any(1)  # [B, A]
+        last = (hit * torch.arange(C, device=dist.device)[None, :, None]).amax(1)  # [B, A]
+        toward = delta.gather(1, last[:, None, :, None].expand(B, 1, A, 2))[:, 0]
+        length = dist.gather(1, last[:, None, :])[:, 0, :, None].clamp(min=1e-6)
+        self.push_dir = torch.where(any_hit[..., None], toward / length, self.push_dir)
+        self.push_left = torch.where(any_hit, cfg.bump_steps, self.push_left)
+        self.touched |= any_hit.T
+        self.cooldown = torch.where(hit.any(-1), cfg.bump_cooldown, self.cooldown)
 
         extra = cfg.bump_distance / (cfg.bump_steps * dt)
         for j, a in enumerate(agents):
