@@ -16,6 +16,7 @@ uv sync                               # creates .venv and installs everything
 uv run pytest                         # tests
 uv run python scripts/view_demo.py    # saves outputs/view.gif (what agent 0 sees)
 uv run python scripts/explore.py      # walk around yourself (needs a display)
+uv run python scripts/chase_demo.py   # saves outputs/chase.gif: a chaser hunting an agent, seen by the ghost
 uv run python scripts/benchmark.py    # world-steps per second on this machine
 ```
 
