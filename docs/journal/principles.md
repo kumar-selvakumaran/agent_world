@@ -94,3 +94,8 @@ When these conflict, simplicity and compute win over features.
   person's machine: no personal paths, usernames or setup details in the repo.
   Depending on Linux or an NVIDIA GPU with CUDA is fine. Personal measurements
   and the research journey may be documented, as an example of a configuration.
+- **Update the journey.** **[Kumar]** After every effort or decision, append a
+  section to `journey.md`.
+- **Say when to look.** **[Kumar]** After each verified change is merged, tell
+  Kumar so he can try it in the explorer
+  (`uv run python scripts/explore.py --scale 12`).

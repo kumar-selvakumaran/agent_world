@@ -214,6 +214,26 @@ with building an environment to test such systems.
 - **[Open]** Whether contacts with a slanted wall can bounce, since VMAS
   contacts are soft penalty forces.
 
+## 12. Building the world up (2026-11-14, later)
+
+- **[Built]** The VMAS probes showed that the earlier failures (walls and
+  obstacles not holding, a plank not pushable) came from a box-shaped agent.
+  The agent is a circle in the physics, drawn as a box inside it.
+- **[Kumar]** Contacts: collision force 1,000 with 5 substeps. **[Built]** It
+  roughly halves throughput. See [physics-engines.md](physics-engines.md).
+- **[Kumar]** Two 8 by 8 rooms joined by a doorway. **[Built]**
+- **[Kumar]** A rotating pink patch in the doorway, stronger than the agent can
+  turn back (2.5 rad/s), with arrowheads twice as big as first built.
+  **[Built]** It can be crossed by turning before the patch and slowing the spin.
+- **[Kumar]** Second scenario: chasers (0.7 of the agent's speed, they see only
+  within range, angle and line of sight, stop when they lose sight, and bump an
+  agent they touch), consumable food drawn on the floor, blue blocks that make
+  a touching chaser respawn far away, and red-and-black striped chasers.
+  **[Open]** Being built in separate git worktrees.
+- **[Kumar]** The explorer works with the new rooms and patch. After each
+  verified change Kumar wants to be told, to try it in the explorer.
+- **[Kumar]** Journey and rules: this file is updated after every effort.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.
