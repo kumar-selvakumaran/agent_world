@@ -58,15 +58,6 @@ yet; the reward is zero.
 
 *The two rooms and the doorway in the middle wall. The agent drives from the first room into the second; the white block at the bottom is the spectator's own body. Every GIF here is recorded from the ghost spectator's view.*
 
-Each room also holds `blocks_per_room` (default 3, 0 for none) big blue blocks, 0.6 by 0.6, one at a
-random spot in each third of the room. They are solid for agents and block the chasers' sight, but
-chasers pass through them: a chaser touching a block vanishes and respawns in its own room, at
-least 4 units from every agent.
-
-![A chaser runs into a blue block and vanishes](docs/media/blue_block_lure.gif)
-
-*The intended use of a blue block: the agent stands just behind it and the chaser, following the straight line toward the agent, touches the block and vanishes. It respawns at least 4 units from the agent, out of view here.*
-
 ```python
 import torch
 from agent_world import WorldConfig, make_env
@@ -112,6 +103,17 @@ round, look and walk away. The rotating patch turns chasers too. Ghosts are igno
 ![A chaser bumps the agent, stands still, then follows slowly](docs/media/chase.gif)
 
 *A chase seen by the spectator. The striped chaser bumps the agent from behind and then stands still for its cooldown while the agent turns round to look at it, turns back and walks away; the chaser follows slowly. The chasers ignore the spectator.*
+
+### Blue blocks
+
+Each room holds `blocks_per_room` (default 3, 0 for none) big blue blocks, 0.6 by 0.6, one at a
+random spot in each third of the room. They are solid for agents and block the chasers' sight, but
+chasers pass through them: a chaser touching a block vanishes and respawns in its own room, at
+least 4 units from every agent.
+
+![A chaser runs into a blue block and vanishes](docs/media/blue_block_lure.gif)
+
+*The intended use of a blue block: the agent stands just behind it and the chaser, following the straight line toward the agent, touches the block and vanishes. It respawns at least 4 units from the agent, out of view here.*
 
 ### Food
 
