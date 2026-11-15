@@ -90,9 +90,26 @@ def test_runs_on_gpu():
     assert torch.allclose(obs[0][:, row, col].cpu(), torch.tensor(AGENT_COLORS[0]).expand(4, 3), atol=1e-5)
 
 
-def test_agent_is_a_box():
-    from vmas.simulator.core import Box
+def test_agent_is_a_circle_drawn_as_a_box():
+    from vmas.simulator.core import Sphere
 
     cfg = WorldConfig(camera=CAMERA)
-    shape = make_env(num_envs=1, config=cfg).agents[0].shape
-    assert isinstance(shape, Box) and (shape.length, shape.width) == cfg.agent_size
+    env = make_env(num_envs=1, config=cfg)
+    assert isinstance(env.agents[0].shape, Sphere)
+    assert env.scenario._visual_size["agent_0"] == cfg.agent_size
+
+
+@pytest.mark.parametrize("obstacle", [0, 1])  # a box and a cylinder
+def test_full_speed_agent_does_not_pass_a_static_obstacle(obstacle):
+    cfg = WorldConfig(n_obstacles=2, camera=CAMERA)
+    env = make_env(num_envs=1, device="cpu", config=cfg)
+    env.reset()
+    for o in env.scenario._obstacles:
+        o.set_pos(torch.tensor([[50.0, 50.0]]), batch_index=None)
+    env.scenario._obstacles[obstacle].set_pos(torch.zeros(1, 2), batch_index=None)
+    agent = env.agents[0]
+    agent.set_pos(torch.tensor([[-0.6, 0.0]]), batch_index=None)
+    agent.set_rot(torch.zeros(1, 1), batch_index=None)
+    for _ in range(40):
+        env.step([torch.tensor([[1.0, 0.0]])])
+        assert agent.state.pos[0, 0] < 0.0
