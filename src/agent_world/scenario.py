@@ -57,9 +57,10 @@ class WorldConfig:
     agent costs one rendered view per step."""
 
     agent_radius: float = 0.1
-    """Radius of the circle around the agent, used for room bounds and spawn spacing."""
+    """Radius of the agent's physics body, a circle. Also used for room bounds and spawn spacing."""
     agent_size: tuple[float, float] = (0.16, 0.12)
-    """Box length (along the heading) and width. Fits inside ``agent_radius``."""
+    """Length (along the heading) and width of the box drawn for the agent, so its
+    heading is visible. It fits inside ``agent_radius``; the physics body is the circle."""
     agent_height: float = 0.25
     max_speed: float = 1.0
     """Forward speed at full action, in world units per second."""
@@ -93,6 +94,8 @@ class Scenario(BaseScenario):
         world = World(batch_dim, device, x_semidim=bound, y_semidim=bound)
         # (entity, height) for everything that can be seen, in a fixed order.
         self._visible: list[tuple[Entity, float]] = []
+        # Entities drawn as a box of this size instead of their physics shape.
+        self._visual_size: dict[str, tuple[float, float]] = {}
 
         for i in range(cfg.n_agents):
             self._add_agent(world, f"agent_{i}", AGENT_COLORS[i % len(AGENT_COLORS)])
@@ -127,7 +130,7 @@ class Scenario(BaseScenario):
         cfg = self.cfg
         agent = Agent(
             name=name,
-            shape=Box(*cfg.agent_size),
+            shape=Sphere(cfg.agent_radius),
             dynamics=DiffDrive(world),
             u_range=[1.0, 1.0],
             u_multiplier=[cfg.max_speed, cfg.max_turn_rate],
@@ -136,6 +139,7 @@ class Scenario(BaseScenario):
         )
         world.add_agent(agent)
         self._visible.append((agent, cfg.agent_height))
+        self._visual_size[name] = cfg.agent_size
 
     def _add_landmark(
         self, world: World, name: str, shape, height: float, color: RGB
@@ -149,6 +153,11 @@ class Scenario(BaseScenario):
         """Per-entity quantities that never change: size, height, colour."""
         half_size, is_box = [], []
         for entity, _ in self._visible:
+            if entity.name in self._visual_size:
+                length, width = self._visual_size[entity.name]
+                half_size.append((length / 2, width / 2))
+                is_box.append(True)
+                continue
             shape = entity.shape
             if isinstance(shape, Box):
                 half_size.append((shape.length / 2, shape.width / 2))
