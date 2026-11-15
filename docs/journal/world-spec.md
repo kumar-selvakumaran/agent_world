@@ -359,6 +359,33 @@ Added 2026-11-14.
 - **[Open]** Respawn is best of 128 random candidates; if none qualifies the best compromise is used.
 - **[Open]** Blocks are axis-aligned and never move; a block next to a wall may leave a gap an agent cannot use.
 
+### Chaser stands still after a bump (later on 2026-11-14)
+
+- **[Kumar]** After a chaser bumps an agent from behind it must be static for the whole
+  cooldown, then approach again. The cooldown is long enough for the agent to turn
+  round, look at the chaser, turn back to face away and take a few steps. Only after
+  that may the chaser start approaching. Chaser speed is 0.3 of the agent's.
+- **[Built]** A chaser that has just bumped neither moves nor turns until its cooldown
+  ends. Speed fraction 0.3 (was 0.7). A touch counts within 0.02 of contact, because a
+  chaser pressing on an agent settles about 0.004 apart.
+
+### Agent drag removed (later on 2026-11-14)
+
+- **[Built]** VMAS gives every entity a default drag of 0.25, applied on every physics
+  substep. We run 5 substeps, so the agent was damped five times as often as VMAS
+  intends, and reached only about 72% of its commanded speed and turn rate.
+- **[Kumar]** Fix it. **[Built]** The agent's own drag is 0: speed 1.0 is now 1.0 and
+  the turn rate 2.0 rad/s, as the code always said. A chaser at 0.3 is now 30% of the
+  agent's real speed.
+- **[Built]** The bump cooldown is now 5 s (it was 1 s, then 7, then 6): two half turns at
+  2 rad/s (about 1.6 s each), a moment to look and a few steps.
+- **[Built]** The contact tests still pass at the agent's true speed. The patch can
+  still be crossed: of 780 entry and command combinations, 186 cross through the
+  doorway.
+- **[Open]** The patch feels different: under full counter-steering an agent now spins
+  clockwise at 0.5 rad/s, not about 1.1. Kumar judged the earlier feel right; to be
+  confirmed.
+
 ## Status
 
 | Item | Status |
