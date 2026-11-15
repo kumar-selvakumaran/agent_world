@@ -67,13 +67,13 @@ repository.
 
 ## Why VMAS for now
 
-- **[Agreed]** The agent is a box, so the missing concave body does not matter.
-- **[Agreed]** The puzzles (floor current, rotating patch, thorn field, plank,
+- **[Kumar]** The agent is a box, so the missing concave body does not matter.
+- **[Proposed]** The puzzles (floor current, rotating patch, thorn field, plank,
   slanted wall, doorway) are tensor logic plus convex pieces. Convex shapes are
   enough for static scenery, because a static wall may be several pieces.
-- **[Agreed]** Physics is not the bottleneck; rendering is. That is fixed in our
+- **[Built]** Physics is not the bottleneck; rendering is. That can be fixed in our
   own ray caster, whichever engine runs the physics.
-- **[Agreed]** The scaffolding VMAS gives for free (the environment wrapper,
+- **[Proposed]** The scaffolding VMAS gives for free (the environment wrapper,
   `DiffDrive`, random layouts) is already in use.
 
 ## Known costs of VMAS
