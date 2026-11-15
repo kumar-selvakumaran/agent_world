@@ -5,3 +5,7 @@ __pycache__/
 outputs/
 scratch/*
 !scratch/.gitkeep
+.env
+.env.*
+data/
+assets/
