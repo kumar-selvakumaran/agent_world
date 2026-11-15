@@ -36,11 +36,13 @@ def test_chasers_are_landmarks_not_agents():
     assert len(ch.landmarks) == 4 and len(env.agents) == 1
 
 
-def test_speed_is_seventy_percent_of_max():
+def test_speed_is_the_configured_fraction_of_max():
     env, ch = setup()
     put(env, 0, -5.0, 0.0), put(env, 0, -3.0, 0.0, chaser=False)
     step(env, 3)
-    assert math.isclose(ch.landmarks[0].state.vel.norm().item(), 0.7, abs_tol=1e-3)
+    cfg = env.scenario.cfg
+    want = cfg.chaser_speed_fraction * cfg.max_speed
+    assert math.isclose(ch.landmarks[0].state.vel.norm().item(), want, abs_tol=1e-3)
 
 
 def test_stops_when_nothing_is_seen():
@@ -80,7 +82,7 @@ def test_chases_and_closes_the_distance():
     put(env, 0, -5.0, 0.0), put(env, 0, -2.0, 2.0, chaser=False)
     gap = lambda: (ch.landmarks[0].state.pos - env.agents[0].state.pos).norm().item()
     before = gap()
-    step(env, 15)
+    step(env, 40)
     assert gap() < before - 0.5
 
 
@@ -116,9 +118,24 @@ def test_bump_displacement_and_flag():
 def test_bump_cooldown_spaces_hits_by_the_cooldown():
     env, ch = setup()
     put(env, 0, -3.2, 0.0), put(env, 0, -3.0, 0.0, chaser=False)
-    t = hits(env, ch, 110)
+    t = hits(env, ch, 150)
     gap = (t[1] - t[0]) * 0.1
-    assert len(t) >= 2 and 6.9 <= gap <= 7.6
+    cooldown = env.scenario.cfg.bump_cooldown
+    assert len(t) >= 2 and cooldown <= gap <= cooldown + 4.0  # the cooldown, then the walk back
+
+
+def test_a_chaser_stands_still_during_its_cooldown():
+    env, ch = setup()
+    put(env, 0, -3.2, 0.0), put(env, 0, -3.0, 0.0, chaser=False)
+    while not ch.touched[0].item():
+        step(env)
+    cooldown = env.scenario.cfg.bump_cooldown
+    step(env, 5)  # the bump itself takes 3 steps
+    start = ch.landmarks[0].state.pos.clone()
+    for _ in range(int(cooldown * 10) - 10):
+        step(env)
+        assert ch.landmarks[0].state.vel.norm() < 1e-3
+    assert (ch.landmarks[0].state.pos - start).norm() < 0.05
 
 
 def test_ghost_is_ignored():
