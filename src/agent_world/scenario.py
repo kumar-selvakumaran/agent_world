@@ -105,17 +105,17 @@ class WorldConfig:
 
     chasers_per_room: int = 2
     """Scripted chasers in each room; 0 turns them off. See :mod:`agent_world.chaser`."""
-    chaser_speed_fraction: float = 0.7
+    chaser_speed_fraction: float = 0.3
     """Chaser speed as a fraction of ``max_speed``; its turn rate is ``max_turn_rate``."""
     chaser_view_range: float = 5.0
     chaser_half_fov_deg: float = 60.0
     bump_distance: float = 0.5
     """How far a chaser's touch shoves an agent, spread over ``bump_steps`` steps."""
     bump_steps: int = 3
-    bump_cooldown: float = 7.0
-    """Seconds before the same chaser can bump again: time for a full turn to see
-    it (about 4.4 s, the agent turns at about 1.4 rad/s in contact), a turn to face
-    away (up to about 2.2 s) and a moment to start moving."""
+    bump_cooldown: float = 6.0
+    """Seconds a chaser stands still after a bump, before it may approach again: time
+    for the agent to turn round (about 2.2 s at its real turn rate of about 1.4 rad/s),
+    look, turn back (about 2.2 s) and take a few steps away."""
 
     agent_radius: float = 0.1
     """Radius of the agent's physics body, a circle. Also used for room bounds and spawn spacing."""
