@@ -40,6 +40,11 @@ overrides it with `pyglet>=2` (`[tool.uv] override-dependencies`). This project
 draws its own views and uses pyglet only for the explorer window. VMAS's own
 `render()` has not been tried with pyglet 2.
 
+### Credits
+
+This project depends on [VMAS](https://github.com/proroklab/VectorizedMultiAgentSimulator),
+which is licensed under GPL-3.0.
+
 ## The world
 
 A walled square room with a few static obstacles (boxes and cylinders of
