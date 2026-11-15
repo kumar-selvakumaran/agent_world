@@ -12,7 +12,7 @@ import torch
 from common import look_from, make_demo_env, put, save_gif, to_image
 
 
-def record(name, start, command_at, camera, target, steps, scale=2):
+def record(name, start, command_at, camera, target, steps, scale=2, own_view=False):
     env = make_demo_env(rotating_patches=True)
     agent, ghost = env.agents
     put(env, agent, *start)
@@ -25,7 +25,7 @@ def record(name, start, command_at, camera, target, steps, scale=2):
         actions = [torch.tensor([command], device=env.device), torch.zeros(1, 2, device=env.device)]
         obs, _, _, _ = env.step(actions)
         if step % 2 == 0:
-            frames.append(to_image(obs[-1][0], scale))
+            frames.append(to_image(obs[0 if own_view else -1][0], scale))  # the agent's view, or the spectator's
     print(f"{name}: agent ends at {agent.state.pos[0].tolist()}, heading {agent.state.rot[0, 0].item():.2f}")
     save_gif(frames, name)
 
@@ -39,5 +39,6 @@ def cross(t, pos, heading):
 
 
 if __name__ == "__main__":
-    record("patch_spin", (-2.2, 0.0, 0.0), spin, lambda p: (-0.5, -0.9), lambda p: (-0.3, 0.0), 100)
-    record("patch_cross", (-0.95, -0.9, 0.0), cross, lambda p: (-1.5, -1.7), lambda p: (0.5, -0.2), 80)
+    record("patch_spin", (-2.2, 0.0, 0.0), spin, lambda p: (-0.5, -0.9), lambda p: (-0.3, 0.0), 100, own_view=True)
+    here = lambda p: (p[0].item(), p[1].item())
+    record("patch_cross", (-0.95, -0.9, 0.0), cross, lambda p: (here(p)[0] - 1.6, here(p)[1] + 1.5), here, 80)
