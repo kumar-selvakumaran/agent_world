@@ -31,6 +31,8 @@ Ways to condition, train or otherwise enable learning in the agent. See the
   - Watching shows what happens, not necessarily why.
   - Small effects are hard to see at 64x48 (the legibility concern).
 - **[Open]** What the learner is trained on while it watches. Not defined.
+- **[Proposed]** stable-worldmodel's scripted Two-Room expert (it goes to the nearest
+  door that fits, then to the target) is the same pattern; see [swm-notes.md](swm-notes.md).
 
 ### More strategies
 
