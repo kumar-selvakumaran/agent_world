@@ -113,11 +113,12 @@ def test_bump_displacement_and_flag():
     assert not ch.touched[0].item()
 
 
-def test_bump_cooldown_spaces_hits_by_a_second():
+def test_bump_cooldown_spaces_hits_by_the_cooldown():
     env, ch = setup()
     put(env, 0, -3.2, 0.0), put(env, 0, -3.0, 0.0, chaser=False)
-    t = hits(env, ch, 30)
-    assert len(t) >= 2 and 0.9 <= (t[1] - t[0]) * 0.1 <= 1.4
+    t = hits(env, ch, 110)
+    gap = (t[1] - t[0]) * 0.1
+    assert len(t) >= 2 and 6.9 <= gap <= 7.6
 
 
 def test_ghost_is_ignored():

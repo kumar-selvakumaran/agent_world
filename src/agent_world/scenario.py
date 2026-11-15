@@ -106,8 +106,10 @@ class WorldConfig:
     bump_distance: float = 0.5
     """How far a chaser's touch shoves an agent, spread over ``bump_steps`` steps."""
     bump_steps: int = 3
-    bump_cooldown: float = 1.0
-    """Seconds before the same chaser can bump again."""
+    bump_cooldown: float = 7.0
+    """Seconds before the same chaser can bump again: time for a full turn to see
+    it (about 4.4 s, the agent turns at about 1.4 rad/s in contact), a turn to face
+    away (up to about 2.2 s) and a moment to start moving."""
 
     agent_radius: float = 0.1
     """Radius of the agent's physics body, a circle. Also used for room bounds and spawn spacing."""
