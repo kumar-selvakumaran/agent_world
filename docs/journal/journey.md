@@ -329,6 +329,19 @@ with building an environment to test such systems.
 - **[Built]** An earlier edit of these docs silently failed on a line-wrapped sentence,
   so this section also records what was missing.
 
+## 19. GIFs of every phenomenon in the README (2026-11-14, later)
+
+- **[Kumar]** Wanted a GIF of every phenomenon in the README, where it is introduced, and
+  not to have to run the explorer. **[Built]** Seven GIFs in `docs/media`: the agent's
+  view, the rooms and doorway, the patch spinning an agent, a doorway crossing, a chase
+  with the bump and the cooldown, food being eaten, and a blue block making a chaser
+  vanish (the intended use, with the agent luring it).
+- **[Built]** The demo scripts are in `scripts/demos/` with a shared helper, and
+  `scripts/chase_demo.py`. They were built in parallel in separate git worktrees.
+- **[Open]** The agent is a small box, so its turning is hard to read in the third-person
+  GIFs, the blue block GIF does not show where the chaser respawns, and the doorway
+  crossing keeps the agent small. The patch spin is shown from the agent's own view.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.
