@@ -311,6 +311,24 @@ with building an environment to test such systems.
   policies. More are to be added. Nothing is built; the chasers are the existing
   building block.
 
+## 18. The chaser stands still; agent drag removed (2026-11-14, later)
+
+- **[Kumar]** Corrected my reading of the cooldown: after the bump the chaser is static
+  for the cooldown, and the agent uses it to turn round, look, turn back and walk away.
+  The chaser had kept pressing on the agent and carrying it along. **[Built]** Chaser
+  speed is 0.3 of the agent's.
+- **[Built]** Blue blocks are merged: 0.6 by 0.6 solid blocks, three per room; a chaser
+  that touches one respawns far from the agents in its own room.
+- **[Built]** Found why the agent reached only about 72% of its commanded speed and
+  turn rate: VMAS applies a default drag of 0.25 on every physics substep and we use 5.
+  **[Kumar]** Asked for the fix. The agent's drag is now 0, so 1.0 means 1.0.
+- **[Built]** Contacts still hold at full speed, the patch is still crossable, and the
+  chaser cooldown is 5 s. **[Open]** Whether the patch still feels right.
+- **[Kumar]** Prefers GIFs made for him over running the explorer. GIFs of every
+  phenomenon are to go in the README, where each is introduced.
+- **[Built]** An earlier edit of these docs silently failed on a line-wrapped sentence,
+  so this section also records what was missing.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.

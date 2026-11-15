@@ -86,9 +86,10 @@ To cross, turn before the patch and enter at an angle. Turn it off with
 Each room holds `chasers_per_room` (2) red-and-black striped chasers. They are
 scripted landmarks, not agents. A chaser sees the nearest agent only within 5
 units, 60 degrees of its heading and a clear line of sight (walls included, the
-doorway is open); it then turns toward the agent and drives at 0.7 of the agent's
+doorway is open); it then turns toward the agent and drives at 0.3 of the agent's
 speed, otherwise it stops. Touching an agent shoves it 0.5 units over 3 steps,
-then the chaser waits 7 s. The rotating patch turns chasers too. Ghosts are ignored.
+then the chaser stands completely still for 5 s, long enough for the agent to turn
+round, look and walk away. The rotating patch turns chasers too. Ghosts are ignored.
 `WorldConfig(chasers_per_room=0)` turns them off.
 
 ### Food

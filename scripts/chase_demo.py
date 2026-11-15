@@ -68,11 +68,11 @@ def main() -> None:
         since = None if first_bump is None else t - first_bump
         if since is None:  # stand still until the chaser walks up and bumps it
             command = [0.0, 0.0]
-        elif since < 2.3:  # turn round to look at the chaser (about 1.4 rad/s)
+        elif since < 1.7:  # turn round to look at the chaser (2 rad/s)
             command = [0.0, 1.0]
-        elif since < 2.8:  # look at it
+        elif since < 2.2:  # look at it
             command = [0.0, 0.0]
-        elif since < 5.0:  # turn back to face away from it
+        elif since < 3.9:  # turn back to face away from it
             command = [0.0, 1.0]
         else:  # walk away
             command = [0.8, 0.0]
