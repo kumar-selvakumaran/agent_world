@@ -170,6 +170,27 @@ Added 2026-11-14. Requirements stated by Kumar; how each is built is open.
 - **[Open]** The engine: these elements (curved walls, moving bodies, joints)
   are not supported well by VMAS. See the engine comparison once recorded.
 
+## Doorway puzzles and hazard zones
+
+Added 2026-11-14. Requirements stated by Kumar.
+
+- **[Kumar]** Kumar does not mind having no door. Two rooms may be joined by a
+  doorway with no door. The sliding door above is set aside for now.
+- **[Kumar]** A rotating patch in front of the doorway turns the agent's
+  heading as it crosses. To get through, the agent keeps turning
+  counter-clockwise while moving forward.
+- **[Kumar]** A field of thorns that is not rendered. Crossing it causes strong
+  pain, which reaches the agent through the separate pain route.
+- **[Kumar]** Pushing a plank ahead of the agent clears the thorns behind the
+  plank for a few seconds, after which they return to that spot.
+- **[Proposed]** Thorn state is a coarse grid with one regrow timer per cell
+  per world. Cells under the plank are cleared; the agent's cell decides pain.
+- **[Open]** Whether the patch is visible, and whether it only turns the
+  heading. Its rate must stay below the agent's maximum turn rate.
+- **[Open]** Pain as a per-step signal, or as lasting damage.
+- **[Open]** Plank width, regrow time and field length, which set the
+  difficulty.
+
 ## Status
 
 | Item | Status |
