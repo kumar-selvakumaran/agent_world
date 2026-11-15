@@ -2,6 +2,7 @@ import pytest
 import torch
 
 from agent_world import CameraConfig, Scenario, WorldConfig, make_env
+from agent_world.patch import inside
 from agent_world.scenario import AGENT_COLORS, SPECTATOR_COLOR
 
 CAMERA = CameraConfig(width=48, height=32)
@@ -102,7 +103,7 @@ def test_agent_is_a_circle_drawn_as_a_box():
 
 @pytest.mark.parametrize("obstacle", [0, 1])  # a box and a cylinder
 def test_full_speed_agent_does_not_pass_a_static_obstacle(obstacle):
-    cfg = WorldConfig(n_obstacles=2, camera=CAMERA)
+    cfg = WorldConfig(n_obstacles=2, rotating_patches=False, camera=CAMERA)
     env = make_env(num_envs=1, device="cpu", config=cfg)
     env.reset()
     for o in env.scenario._obstacles:
@@ -133,7 +134,7 @@ def test_full_speed_agent_does_not_cross_a_slanted_wall():
     phi = math.radians(45)
     env = vmas.make_env(
         scenario=Slanted(), num_envs=1, device="cpu",
-        config=WorldConfig(n_obstacles=0, camera=CAMERA),
+        config=WorldConfig(n_obstacles=0, rotating_patches=False, camera=CAMERA),
     )
     env.reset()
     env.scenario.slant.set_rot(torch.full((1, 1), phi), batch_index=None)
@@ -156,7 +157,7 @@ def test_agents_start_in_the_first_room():
 
 
 def test_full_speed_agent_passes_the_doorway_but_not_the_wall():
-    env = make_env(num_envs=2, device="cpu", config=WorldConfig(n_obstacles=0, camera=CAMERA))
+    env = make_env(num_envs=2, device="cpu", config=WorldConfig(n_obstacles=0, rotating_patches=False, camera=CAMERA))
     env.reset()
     agent = env.agents[0]
     agent.set_pos(torch.tensor([[-1.0, 0.0], [-1.0, 2.0]]), batch_index=None)  # doorway, wall
@@ -165,3 +166,59 @@ def test_full_speed_agent_passes_the_doorway_but_not_the_wall():
         env.step([torch.tensor([[1.0, 0.0]]).expand(2, 2)])
     assert agent.state.pos[0, 0] > 1.0
     assert agent.state.pos[1, 0] < 0.0
+
+
+def patch_env(num_envs=1):
+    env = make_env(num_envs=num_envs, device="cpu", config=WorldConfig(n_obstacles=0, camera=CAMERA))
+    env.reset()
+    return env, env.scenario._patches[0]
+
+
+def place(env, x, y, heading=0.0):
+    agent = env.agents[0]
+    n = agent.state.pos.shape[0]
+    agent.set_pos(torch.tensor([[x, y]]).expand(n, 2), batch_index=None)
+    agent.set_rot(torch.full((n, 1), heading), batch_index=None)
+    return agent
+
+
+def test_a_patch_turns_an_idle_agent_clockwise():
+    env, patch = patch_env()
+    agent = place(env, *patch.center)
+    for _ in range(10):  # one second
+        env.step([torch.zeros(1, 2)])
+    assert -1.2 < agent.state.rot.item() < -0.7
+
+
+def test_counter_turning_cancels_the_patch_and_it_acts_only_inside():
+    env, patch = patch_env(num_envs=2)
+    agent = env.agents[0]
+    agent.set_pos(torch.tensor([list(patch.center), [patch.center[0] + 3.0, 0.0]]), batch_index=None)
+    agent.set_rot(torch.zeros(2, 1), batch_index=None)
+    for _ in range(10):
+        env.step([torch.tensor([[0.0, 0.5], [0.0, 0.0]])])  # +0.5 of the turn range is +1 rad/s
+    assert agent.state.rot[0].abs() < 0.1  # on the patch: cancelled
+    assert agent.state.rot[1].abs() < 1e-3  # off the patch: untouched
+
+
+def test_the_doorway_is_crossed_only_by_counter_turning():
+    def cross(counter_turn):
+        env, patch = patch_env()
+        agent = place(env, patch.center[0] - 1.5, 0.0)
+        for _ in range(50):
+            on = bool(inside(agent.state.pos, patch))
+            env.step([torch.tensor([[1.0, 0.5 if (on and counter_turn) else 0.0]])])
+        return agent.state.pos[0]
+
+    straight = cross(counter_turn=True)
+    assert straight[0] > 1.1 and straight[1].abs() < 0.3
+    thrown = cross(counter_turn=False)
+    assert thrown[0] < 1.1 or thrown[1].abs() > 0.5
+
+
+def test_the_patch_is_visible_to_the_agent():
+    env, patch = patch_env()
+    place(env, patch.center[0] - 3.0, 0.0)
+    obs = env.step([torch.zeros(1, 2)])[0][0][0]
+    pink = torch.tensor(patch.color)
+    assert ((obs - pink).abs().amax(-1) < 0.02).any()
