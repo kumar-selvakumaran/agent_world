@@ -122,7 +122,8 @@ class Chasers:
             c.set_vel(vel[:, i], batch_index=None)
 
         # Touches: the last chaser to touch an agent decides the direction of the shove.
-        hit = (dist < 2 * cfg.agent_radius) & (self.cooldown[..., None] <= 0)  # [B, C, A]
+        # Soft contact settles about 0.004 apart, so allow a little tolerance.
+        hit = (dist < 2 * cfg.agent_radius + 0.02) & (self.cooldown[..., None] <= 0)  # [B, C, A]
         any_hit = hit.any(1)  # [B, A]
         last = (hit * torch.arange(C, device=dist.device)[None, :, None]).amax(1)  # [B, A]
         toward = delta.gather(1, last[:, None, :, None].expand(B, 1, A, 2))[:, 0]
