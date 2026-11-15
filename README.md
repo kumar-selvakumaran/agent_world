@@ -17,6 +17,7 @@ uv run pytest                         # tests
 uv run python scripts/view_demo.py    # saves outputs/view.gif (what agent 0 sees)
 uv run python scripts/explore.py      # walk around yourself (needs a display)
 uv run python scripts/chase_demo.py   # saves outputs/chase.gif: a chaser hunting an agent, seen by the ghost
+uv run python scripts/demos/patch.py  # the other demo GIFs in docs/media: also food_rooms.py, blue_block_lure.py
 uv run python scripts/benchmark.py    # world-steps per second on this machine
 ```
 
@@ -53,10 +54,18 @@ different heights) and one or more agents. Each agent is a circle in the physics
 action is `(forward speed, turn rate)`, each in `[-1, 1]`. There is no task
 yet; the reward is zero.
 
+![An agent drives from the first room through the doorway into the second](docs/media/rooms.gif)
+
+*The two rooms and the doorway in the middle wall. The agent drives from the first room into the second; the white block at the bottom is the spectator's own body. Every GIF here is recorded from the ghost spectator's view.*
+
 Each room also holds `blocks_per_room` (default 3, 0 for none) big blue blocks, 0.6 by 0.6, one at a
 random spot in each third of the room. They are solid for agents and block the chasers' sight, but
 chasers pass through them: a chaser touching a block vanishes and respawns in its own room, at
 least 4 units from every agent.
+
+![A chaser runs into a blue block and vanishes](docs/media/blue_block_lure.gif)
+
+*The intended use of a blue block: the agent stands just behind it and the chaser, following the straight line toward the agent, touches the block and vanishes. It respawns at least 4 units from the agent, out of view here.*
 
 ```python
 import torch
@@ -81,6 +90,14 @@ so it cannot turn anti-clockwise on the patch: counter-steering only slows the s
 To cross, turn before the patch and enter at an angle. Turn it off with
 `WorldConfig(rotating_patches=False)`.
 
+![The agent stands on the patch and the world spins round](docs/media/patch_spin.gif)
+
+*The agent's own view as it drives onto the patch and stands still: the patch turns it clockwise at 2.5 rad/s, so the world sweeps round.*
+
+![An agent crosses the doorway by turning before the patch and slowing the spin](docs/media/patch_cross.gif)
+
+*Crossing: the agent starts off the patch, enters at an angle and keeps counter-steering, which only slows the spin, so it comes out in the second room.*
+
 ### Chasers
 
 Each room holds `chasers_per_room` (2) red-and-black striped chasers. They are
@@ -92,12 +109,20 @@ then the chaser stands completely still for 5 s, long enough for the agent to tu
 round, look and walk away. The rotating patch turns chasers too. Ghosts are ignored.
 `WorldConfig(chasers_per_room=0)` turns them off.
 
+![A chaser bumps the agent, stands still, then follows slowly](docs/media/chase.gif)
+
+*A chase seen by the spectator. The striped chaser bumps the agent from behind and then stands still for its cooldown while the agent turns round to look at it, turns back and walks away; the chaser follows slowly. The chasers ignore the spectator.*
+
 ### Food
 
 Each room has `food_per_room` (24) ochre discs of radius `food_radius` (0.08) painted on the
 floor; they are not entities, so they cost almost no throughput. An agent whose centre is within
 its radius plus the food radius eats it (the ghost spectator does not). The food reappears at a
 new random spot in the same room after `food_respawn_time` (5 s). About 6 are in view on average.
+
+![An agent drives along a line of food discs and eats them](docs/media/food_eating.gif)
+
+*Food: the agent drives along a line of discs and eats them. Each one vanishes at once and reappears elsewhere in its room after 5 s.*
 
 ### The view
 
@@ -111,6 +136,10 @@ it, looking along the agent's heading and tilted down. The view is bounded by
 It is an ordinary pinhole camera, so straight lines stay straight. See
 `CameraConfig` for the knobs, including `eye_back` to pull the eye back behind
 the agent.
+
+![What an agent sees as it drives](docs/media/view.gif)
+
+*The agent's own 64x48 view, enlarged: the checkered floor, food discs, an obstacle, big blue blocks, a wall and the pink patch.*
 
 ### The spectator
 
