@@ -368,6 +368,15 @@ with building an environment to test such systems.
 - **[Open]** Whether to build a declarative authoring layer, and whether to build the
   optics mechanic soon.
 
+## 22. The world as a survival game (2026-11-15)
+
+- **[Kumar]** Stated that the world, as built and as intended, is a survival game, with
+  intrinsic costs: hunger, pain avoidance, curiosity and discomfort with uncertainty. Asked
+  how agents are typically conditioned to survive, citing Crafter.
+- Logged as strategy 2 in [curriculum.md](curriculum.md), with a proposed mapping onto the
+  world and the known tension between curiosity and discomfort with uncertainty.
+- **[Open]** Defining health, hunger and pain in the world.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.

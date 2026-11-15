@@ -34,6 +34,29 @@ Ways to condition, train or otherwise enable learning in the agent. See the
 - **[Proposed]** stable-worldmodel's scripted Two-Room expert (it goes to the nearest
   door that fits, then to the target) is the same pattern; see [swm-notes.md](swm-notes.md).
 
+### 2. Survival drives and intrinsic costs
+
+- **[Kumar]** The world, as built and as intended, is a survival game: survive as long
+  as possible.
+- **[Kumar]** The agent is meant to carry intrinsic costs while it acts: hunger (to
+  survive) and avoidance of pain, but also curiosity and discomfort with uncertainty.
+- **[Kumar]** The open question is how agents are typically conditioned to survive in such
+  a world. Crafter was the example (tools such as a pickaxe and an axe to make, and
+  zombies to kill).
+- **[Proposed]** What is typical, from memory and **[Unverified]**: a sparse reward for
+  unlocking achievements plus a small health term (Crafter); homeostatic reinforcement
+  learning, where reward is the reduction of the distance between internal variables and
+  their set points; intrinsic motivation such as prediction error or novelty; death as a
+  terminal state; goals suggested by a language model.
+- **[Proposed]** Mapping to this world: food to hunger; a chaser's bump, and the thorn
+  field once built, to pain; hidden hazards and unvisited rooms to uncertainty and
+  curiosity.
+- **[Proposed]** A known tension to design for: curiosity seeks uncertainty out, while
+  discomfort with uncertainty avoids it. Hunger and pain are what give the agent a reason
+  to leave a safe, predictable corner.
+- **[Open]** Health, hunger and pain are not yet defined in the world (see the pain
+  questions in [world-spec.md](world-spec.md)).
+
 ### More strategies
 
 - **[Open]** To be added as Kumar describes them. Kumar has said he has ideas for
