@@ -51,9 +51,10 @@ def test_agents_stay_inside_the_room():
     env.reset()
     for _ in range(150):
         env.step([torch.tensor([[1.0, 0.0]]).expand(8, 2) for _ in env.agents])
-    limit = cfg.arena_size / 2 - cfg.wall_thickness / 2 - cfg.agent_radius
+    margin = cfg.wall_thickness / 2 + cfg.agent_radius
+    limit = torch.tensor([cfg.arena_width / 2 - margin, cfg.arena_height / 2 - margin], device=env.device)
     for agent in env.agents:
-        assert agent.state.pos.abs().max() <= limit + 1e-2
+        assert (agent.state.pos.abs() <= limit + 1e-2).all()
 
 
 def test_spectator_is_a_ghost():
