@@ -25,6 +25,7 @@ from vmas.simulator.scenario import BaseScenario
 from vmas.simulator.utils import ScenarioUtils
 
 from agent_world.camera import CameraConfig, local_ray_directions, world_rays
+from agent_world.patch import Patch, inside
 from agent_world.raycast import Palette, Scene, render
 
 RGB = tuple[float, float, float]
@@ -46,6 +47,26 @@ SPECTATOR_COLOR: RGB = (0.95, 0.95, 0.95)
 SPECTATOR_NAME = "spectator"
 
 
+class PatchDiffDrive(DiffDrive):
+    """DiffDrive that also turns the agent while it is inside a patch.
+
+    The patch rate is added after the action is clamped and scaled, so a patch
+    faster than the agent's maximum turn rate cannot be beaten.
+    """
+
+    def __init__(self, world: World, patches: tuple[Patch, ...]):
+        super().__init__(world)
+        self.patches = patches
+
+    def process_action(self):
+        u = self.agent.action.u
+        command = u[:, 1].clone()
+        for patch in self.patches:
+            u[:, 1] += patch.rate * inside(self.agent.state.pos, patch)
+        super().process_action()
+        u[:, 1] = command
+
+
 @dataclass(frozen=True)
 class WorldConfig:
     n_agents: int = 1
@@ -57,6 +78,13 @@ class WorldConfig:
     """Gap in the wall between two rooms, centred on the wall."""
     n_obstacles: int = 12
     """Spread over the rooms, one after the other."""
+    rotating_patches: bool = True
+    """Put a rotating patch in every doorway."""
+    patch_radius: float = 1.0
+    """Ten agent widths across."""
+    patch_rate: float = -1.0
+    """Turn rate inside a patch, in radians per second; negative is clockwise.
+    Keep it below ``max_turn_rate`` so an agent can beat it."""
     spectator: bool = False
     """Add a ghost agent for a human observer. Leave off for training: every
     agent costs one rendered view per step."""
@@ -117,6 +145,11 @@ class Scenario(BaseScenario):
             collision_force=cfg.collision_force,
             substeps=cfg.substeps,
         )
+        self._patches = tuple(
+            Patch(center=(-cfg.arena_width / 2 + k * cfg.room_size, 0.0), radius=cfg.patch_radius, rate=cfg.patch_rate)
+            for k in range(1, cfg.n_rooms)
+            if cfg.rotating_patches
+        )
         # (entity, height) for everything that can be seen, in a fixed order.
         self._visible: list[tuple[Entity, float]] = []
         # Entities drawn as a box of this size instead of their physics shape.
@@ -175,7 +208,7 @@ class Scenario(BaseScenario):
         agent = Agent(
             name=name,
             shape=Sphere(cfg.agent_radius),
-            dynamics=DiffDrive(world),
+            dynamics=PatchDiffDrive(world, self._patches),
             u_range=[1.0, 1.0],
             u_multiplier=[cfg.max_speed, cfg.max_turn_rate],
             collide=not ghost,
@@ -282,7 +315,7 @@ class Scenario(BaseScenario):
         visible = ~self._is_ghost
         visible[self._index[agent.name]] = True
         rgb, depth = render(
-            origin, dirs, self.scene(), cam.max_range, self.cfg.palette, visible
+            origin, dirs, self.scene(), cam.max_range, self.cfg.palette, visible, self._patches
         )
         batch = rgb.shape[0]
         return (

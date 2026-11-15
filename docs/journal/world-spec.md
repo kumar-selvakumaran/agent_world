@@ -226,6 +226,21 @@ Added 2026-11-14. Requirements stated by Kumar.
   image (confirmed later on 2026-11-14).
 - **[Open]** How that separate observation is exposed to the agent.
 
+## Rotating patch
+
+Added 2026-11-14.
+
+- **[Built]** A pink disc in each doorway, 10 agent widths (2.0) across, with a
+  black ring and four black arrowheads on it pointing the way it spins.
+- **[Built]** An agent on it is turned clockwise at 1 rad/s, added after its
+  command is clamped. To cross straight it keeps turning counter-clockwise.
+- **[Open]** Whether "10 agents to fit in it" means 10 across (as built) or
+  10 by area, which would be a radius of about 0.35.
+- **[Open]** How the arrowheads were meant to touch the ring. Built as
+  tangential arrowheads, with the ring running through their axis.
+- **[Open]** At 64x48 the ring and arrows are only a few pixels from 2.5 units
+  away; the pink disc is clear.
+
 ## Status
 
 | Item | Status |
