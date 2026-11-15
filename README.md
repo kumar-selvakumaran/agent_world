@@ -35,7 +35,7 @@ uv run python -c "import torch; print(torch.__version__, torch.cuda.is_available
 ## The world
 
 A walled square room with a few static obstacles (boxes and cylinders of
-different heights) and one or more agents. Agents steer like a vehicle: the
+different heights) and one or more agents. Each agent is a small box (`agent_size`), so its heading is visible. Agents steer like a vehicle: the
 action is `(forward speed, turn rate)`, each in `[-1, 1]`. There is no task
 yet; the reward is zero.
 
