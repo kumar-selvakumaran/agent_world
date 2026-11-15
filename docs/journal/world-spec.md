@@ -340,6 +340,10 @@ does not fail but slows about five times. Table in
 [../benchmark.md](../benchmark.md). Chunking the render was considered and set
 aside for now: **[Dropped]** because the GPU saturates before memory limits it.
 
+**Update 2026-11-14 (later):** with two rooms, 12 obstacles, chasers, food and
+5 physics substeps, about 350 world-steps/s at 256 worlds; the breakdown and the
+options for going faster are in [journey.md](journey.md), section 14.
+
 ## Known limits of VMAS **[Agreed]**
 
 - 2D only.
