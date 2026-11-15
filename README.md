@@ -53,6 +53,11 @@ different heights) and one or more agents. Each agent is a circle in the physics
 action is `(forward speed, turn rate)`, each in `[-1, 1]`. There is no task
 yet; the reward is zero.
 
+Each room also holds `blocks_per_room` (default 3, 0 for none) big blue blocks, 0.6 by 0.6, one at a
+random spot in each third of the room. They are solid for agents and block the chasers' sight, but
+chasers pass through them: a chaser touching a block vanishes and respawns in its own room, at
+least 4 units from every agent.
+
 ```python
 import torch
 from agent_world import WorldConfig, make_env

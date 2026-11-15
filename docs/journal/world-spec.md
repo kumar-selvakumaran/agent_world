@@ -342,6 +342,22 @@ reasoning the world is ultimately for.
   found by exploring.
 - **[Open]** If and when to build it. Today's scenarios (the patch, chasers, food, blue
   blocks) are simpler steps in the same direction.
+## Blue blocks
+
+Added 2026-11-14.
+
+- **[Built]** `blocks_per_room` (default 3, 0 = off) solid blue boxes, `block_size` 0.6, height 0.5.
+  Static and solid for agents, drawn like other entities, and they block the chasers' line of sight.
+- **[Built]** Placement is stratified: each room is cut into equal strips along x and one block sits at a
+  uniform random spot in each, away from the walls and at least the patch radius plus the block's
+  half-diagonal from the doorway. Blocks are placed first; obstacles and agents avoid them. Reset
+  places them per world.
+- **[Built]** Chasers are not stopped by blocks (a collision filter on the chaser landmarks). A chaser whose
+  centre is within its radius of a block box vanishes and respawns in its own room, 4 or more units from
+  every agent and clear of blocks and obstacles, with a random heading, zero velocity and no cooldown.
+  The candidate sampling is shared with the chasers' reset (`Chasers._spawn`).
+- **[Open]** Respawn is best of 128 random candidates; if none qualifies the best compromise is used.
+- **[Open]** Blocks are axis-aligned and never move; a block next to a wall may leave a gap an agent cannot use.
 
 ## Status
 
