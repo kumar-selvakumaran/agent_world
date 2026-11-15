@@ -11,6 +11,7 @@ page first; it says how to read the others.
 | [journey.md](journey.md) | How did we get here, and what was established on the way? | A new line of thought is opened or closed |
 | [world-spec.md](world-spec.md) | What must the world be and do? What exists so far? | A requirement is added, dropped or built |
 | [principles.md](principles.md) | How do we design and build it? | A standing rule is added or changed |
+| [physics-engines.md](physics-engines.md) | Which physics engine, and why? | An engine is measured, added or dropped |
 
 `journey.md` is history: it is added to, not rewritten. `world-spec.md` and
 `principles.md` describe the current state: they are edited in place.
