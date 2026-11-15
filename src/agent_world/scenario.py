@@ -112,10 +112,10 @@ class WorldConfig:
     bump_distance: float = 0.5
     """How far a chaser's touch shoves an agent, spread over ``bump_steps`` steps."""
     bump_steps: int = 3
-    bump_cooldown: float = 6.0
+    bump_cooldown: float = 5.0
     """Seconds a chaser stands still after a bump, before it may approach again: time
-    for the agent to turn round (about 2.2 s at its real turn rate of about 1.4 rad/s),
-    look, turn back (about 2.2 s) and take a few steps away."""
+    for the agent to turn round (about 1.6 s at its turn rate of 2 rad/s), look, turn
+    back (about 1.6 s) and take a few steps away."""
 
     agent_radius: float = 0.1
     """Radius of the agent's physics body, a circle. Also used for room bounds and spawn spacing."""
@@ -255,6 +255,7 @@ class Scenario(BaseScenario):
             dynamics=PatchDiffDrive(world, self._patches),
             u_range=[1.0, 1.0],
             u_multiplier=[cfg.max_speed, cfg.max_turn_rate],
+            drag=0.0,
             collide=not ghost,
             color=color,
         )
