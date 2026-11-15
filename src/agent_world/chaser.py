@@ -141,11 +141,12 @@ class Chasers:
         blocked = intersect(origin, ray, scene).amin(-1).reshape(B, C) < d
         sees = (d <= cfg.chaser_view_range) & (err.abs() <= math.radians(cfg.chaser_half_fov_deg)) & ~blocked
 
-        heading = self.heading + torch.where(sees, err.clamp(-max_turn, max_turn), 0.0)
+        go = sees & (self.cooldown <= 0)  # after a bump a chaser stands still until its cooldown ends
+        heading = self.heading + torch.where(go, err.clamp(-max_turn, max_turn), 0.0)
         for p in self.patches:
             heading = heading + p.rate * dt * inside(cpos, p)
         self.heading = torch.remainder(heading + math.pi, 2 * math.pi) - math.pi
-        vel = torch.stack([self.heading.cos(), self.heading.sin()], -1) * speed * sees[..., None]
+        vel = torch.stack([self.heading.cos(), self.heading.sin()], -1) * speed * go[..., None]
         for i, c in enumerate(self.landmarks):
             c.set_rot(self.heading[:, i : i + 1], batch_index=None)
             c.set_vel(vel[:, i], batch_index=None)

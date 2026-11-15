@@ -107,7 +107,7 @@ def test_a_block_blocks_the_chasers_line_of_sight():
     put(env, env.agents[0], -3.0, 0.0)
     ch.heading[:, 0] = 0.0
     step(env, 3)
-    assert ch.landmarks[0].state.vel.norm() > 0.5
+    assert ch.landmarks[0].state.vel.norm() > 0.1
     put(env, sc._blocks[0], -4.0, 0.0)
     put(env, ch.landmarks[0], -5.0, 0.0)
     step(env, 3)

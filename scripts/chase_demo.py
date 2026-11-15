@@ -2,8 +2,9 @@
 
     uv run python scripts/chase_demo.py
 
-The agent stands still until a chaser bumps it, turns a full circle to see what hit it,
-turns away and sprints. The spectator stays close beside the chase and the chasers
+The agent stands still until a chaser bumps it from behind. The chaser then stands still
+for its cooldown while the agent turns round to look at it, turns back and walks away;
+the chaser follows slowly. The spectator stays close beside the chase; the chasers
 ignore it. Writes ``outputs/chase.gif``.
 """
 
@@ -67,12 +68,14 @@ def main() -> None:
         since = None if first_bump is None else t - first_bump
         if since is None:  # stand still until the chaser walks up and bumps it
             command = [0.0, 0.0]
-        elif since < 4.5:  # one full turn on the spot (about 1.4 rad/s), to see what hit it
+        elif since < 2.3:  # turn round to look at the chaser (about 1.4 rad/s)
             command = [0.0, 1.0]
-        elif since < 5.7:  # turn north, away from the chaser
-            command = [0.6, 1.0]
-        else:  # sprint, faster than the chaser
-            command = [1.0, 0.0]
+        elif since < 2.8:  # look at it
+            command = [0.0, 0.0]
+        elif since < 5.0:  # turn back to face away from it
+            command = [0.0, 1.0]
+        else:  # walk away
+            command = [0.8, 0.0]
         actions = [torch.tensor([command], device=dev), torch.zeros(1, 2, device=dev)]
         obs, _, _, _ = env.step(actions)
         touched = bool(chasers.touched.any())
