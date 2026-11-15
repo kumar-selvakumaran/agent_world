@@ -87,3 +87,25 @@ repository.
   `render()` is untested with pyglet 2; this project does not use it.
 - **[Open]** Whether a bounce off a slanted wall is possible with soft
   contacts.
+
+## VMAS feasibility probes (2026-11-14)
+
+Scratch probes testing whether the planned puzzles can be built in VMAS. Four
+were run by research agents and not re-run; the obstacle check was run directly.
+The probes are in `scratch/` and not in the repository.
+
+| Element | Result | How |
+| --- | --- | --- |
+| Rotating patch | **[Built]** Possible, easy | Subclass `DiffDrive`; add the patch rate to the turn command inside the region. A rate above the maximum turn rate cannot be beaten. |
+| Floor current | **[Built]** Possible, simple | `env_process_action` hook adds a force; net velocity is command plus current. Diagonal crossing works, a slow straight drive does not. |
+| Moving walls | **[Built]** Possible | Set the velocity of a movable landmark each step in `pre_step`. It can tunnel if the agent is pinned against a wall. |
+| Chaser and pain on touch | **[Built]** Possible | Scripted actions; `world.is_overlapping` gives a per-world flag. Mask the ghost out. |
+| Thorn grid | **[Built]** Possible | A `[B, 10, 10]` timer tensor; pain from the agent's cell. |
+| Pushing a plank physically | **[Built]** Not workable | Tunnels or bounces at every substep count tried (1, 2, 5, 10). |
+| Kinematic plank | **[Built]** Works | The plank copies the agent's velocity while in contact. Zero pain steps pushing straight. The lag test was not re-run. |
+| Bounce off a slanted wall | **[Built]** Possible with a hook | VMAS box contact acts only in a 0.005 shell, so the agent tunnels at speed 0.3 or more. Reflecting heading and velocity in a post-step hook works. |
+
+- **[Built]** In our current world a cylinder obstacle was passed through at
+  full speed, and a box obstacle was penetrated and then ejected hard. The
+  room's outer walls hold only because of the world-bounds clamp.
+- **[Open]** Our own collider for static walls and obstacles, to be decided.
