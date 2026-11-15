@@ -66,6 +66,11 @@ class WorldConfig:
     """Forward speed at full action, in world units per second."""
     max_turn_rate: float = 2.0
     """Turn rate at full action, in radians per second."""
+    collision_force: float = 1000.0
+    """Contact stiffness (VMAS defaults to 100). At full speed, 1000 with 5 substeps
+    holds agents against walls and obstacles without violent ejections."""
+    substeps: int = 5
+    """Physics substeps per step. Stiff contacts need them to stay stable."""
 
     wall_height: float = 1.0
     wall_thickness: float = 0.1
@@ -91,7 +96,14 @@ class Scenario(BaseScenario):
         # Walls stop ordinary agents; these bounds also stop the spectator,
         # which passes through walls, from leaving the room.
         bound = cfg.arena_size / 2 - cfg.wall_thickness / 2 - cfg.agent_radius
-        world = World(batch_dim, device, x_semidim=bound, y_semidim=bound)
+        world = World(
+            batch_dim,
+            device,
+            x_semidim=bound,
+            y_semidim=bound,
+            collision_force=cfg.collision_force,
+            substeps=cfg.substeps,
+        )
         # (entity, height) for everything that can be seen, in a fixed order.
         self._visible: list[tuple[Entity, float]] = []
         # Entities drawn as a box of this size instead of their physics shape.
