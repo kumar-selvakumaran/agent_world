@@ -47,7 +47,7 @@ which is licensed under GPL-3.0.
 
 ## The world
 
-A walled square room with a few static obstacles (boxes and cylinders of
+Two walled 8 by 8 rooms joined by a doorway, with a few static obstacles (boxes and cylinders of
 different heights) and one or more agents. Each agent is a circle in the physics and is drawn as a small box inside it (`agent_size`), so its heading is visible. Agents steer like a vehicle: the
 action is `(forward speed, turn rate)`, each in `[-1, 1]`. There is no task
 yet; the reward is zero.
