@@ -386,6 +386,21 @@ Added 2026-11-14.
   clockwise at 0.5 rad/s, not about 1.1. Kumar judged the earlier feel right; to be
   confirmed.
 
+## Design inclination
+
+Added 2026-11-15.
+
+- **[Kumar]** The world should be general but simple, and extendable: simple, yet
+  flexible enough to hold a diverse set of nuances, so that many long-horizon tasks can
+  be defined.
+- **[Kumar]** The reason: existing games are not extendable, so their difficulty can be
+  taken to extreme amounts along a single axis. This world should capture many diverse,
+  difficult challenges that are difficult in different ways.
+- **[Kumar]** Examples: the light-beam and mirror puzzle (the north-star scenario above),
+  and multiple agents with social behaviour.
+- **[Open]** Whether any existing environment is a contender in this sense. A survey
+  found none that combines all of it; see [contenders.md](contenders.md).
+
 ## Status
 
 | Item | Status |

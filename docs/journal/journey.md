@@ -353,6 +353,21 @@ with building an environment to test such systems.
   are a good design. Nothing in it mentions VMAS.
 - **[Open]** Which of the ideas to borrow, if any.
 
+## 21. Is there a contender? (2026-11-15)
+
+- **[Kumar]** Stated the core design inclination: a world that is general, simple and
+  extendable, with diverse long-horizon tasks that are difficult in different ways, and
+  asked whether any existing environment is a contender.
+- **[Built]** Three research agents surveyed single-agent task generators, multi-agent and
+  social worlds, and embodied and physics worlds. Their verdict, with caveats about how
+  deep the research went: none combines GPU batching, cheap authoring of arbitrary
+  mechanics, an occluded first-person camera, scripted adversaries and several difficulty
+  axes; none offers an optics puzzle. See [contenders.md](contenders.md).
+- The document also records what the surveyed worlds do better than ours, and that our
+  flexibility claim is not yet tested on the hardest mechanic, optics.
+- **[Open]** Whether to build a declarative authoring layer, and whether to build the
+  optics mechanic soon.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.

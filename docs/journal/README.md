@@ -14,6 +14,7 @@ page first; it says how to read the others.
 | [physics-engines.md](physics-engines.md) | Which physics engine, and why? | An engine is measured, added or dropped |
 | [curriculum.md](curriculum.md) | How could the agent be taught what the world needs? | A strategy is added, tried or dropped |
 | [swm-notes.md](swm-notes.md) | What can we learn from stable-worldmodel, and how do we compare? | A source is studied or a comparison changes |
+| [contenders.md](contenders.md) | Is any existing environment a contender for what this world is for? | A candidate is added, checked or dropped |
 
 `journey.md` is history: it is added to, not rewritten. `world-spec.md` and
 `principles.md` describe the current state: they are edited in place.
