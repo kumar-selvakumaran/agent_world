@@ -153,6 +153,23 @@ but its own, and held in by VMAS's world bounds. Enabled with
 rendered view per step. `scripts/explore.py` drives it from the keyboard
 (not yet tested with a real display).
 
+## Dynamic elements and physics puzzles
+
+Added 2026-11-14. Requirements stated by Kumar; how each is built is open.
+
+- **[Kumar]** The world should contain physics puzzles whose solution is found
+  in the dynamics, not in extra pixels or noise.
+- **[Kumar]** Moving walls, moving obstacles and a moving floor.
+- **[Kumar]** Example: a floor current runs right to left, and a curved wall on
+  the left throws agents back. To cross, the agent moves diagonally against
+  the flow so its net displacement is forward.
+- **[Kumar]** Doors are blocks that slide along the wall and protrude past it
+  on both sides. The agent pushes a protruding face to open or close the door,
+  from either side.
+- **[Open]** Whether walls bounce agents or only block them.
+- **[Open]** The engine: these elements (curved walls, moving bodies, joints)
+  are not supported well by VMAS. See the engine comparison once recorded.
+
 ## Status
 
 | Item | Status |
