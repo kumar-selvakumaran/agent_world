@@ -326,6 +326,20 @@ reasoning the world is ultimately for.
 - **[Proposed]** What it would ask of the world, for later: reflective surfaces that
   rays bounce off, objects that can be moved and rotated, a goal that is not given and
   must be inferred, and effects that only show up after several linked changes.
+- **[Kumar]** The rays of light are visible to the agent, as are the pillars. Some
+  pillars are clamped to the ground and can only rotate, others are free to move;
+  levers orient them.
+- **[Proposed]** Feasibility in VMAS (assessed from what we know, **not tested**):
+  possible with VMAS plus our own code. VMAS supplies the pillars as entities (its
+  `movable` and `rotatable` flags give "rotate only" and "free"), their pushing and
+  the walls. We would write the light and the levers: a batched ray tracer that
+  reflects off mirror segments for a few bounces; levers as logic that sets a
+  pillar's angle; beams painted on the floor like the patch; a target spot that
+  lights when hit.
+- **[Proposed]** Risks: thin mirrors may be crossed at speed (0.1 thick held for
+  walls); at 64x48 a beam is only a pixel or two wide, so beams need to be bright and
+  wide (the same legibility concern as the food and arrows); a hidden target must be
+  found by exploring.
 - **[Open]** If and when to build it. Today's scenarios (the patch, chasers, food, blue
   blocks) are simpler steps in the same direction.
 
