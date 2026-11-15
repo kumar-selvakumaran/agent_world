@@ -82,5 +82,8 @@ repository.
 - **[Built]** Soft contacts: small overlaps, and a fast body can tunnel.
 - **[Unverified]** GPL-3.0 licence, and a pyglet pin that needed an override on
   Python 3.13.
+- **[Built]** VMAS pins `pyglet<=1.5.27`, which crashes opening a window on
+  Python 3.13. `pyproject.toml` overrides it with `pyglet>=2`. VMAS's own
+  `render()` is untested with pyglet 2; this project does not use it.
 - **[Open]** Whether a bounce off a slanted wall is possible with soft
   contacts.
