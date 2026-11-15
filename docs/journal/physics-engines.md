@@ -130,3 +130,19 @@ per case, `scratch/sphere_vs_box.py`), driving at speed 1.0:
   kinematic-plank and own-collider proposals above.
 - **[Open]** Circular physics with a box drawn inside it, for a visible heading.
   Slanted-wall contact with a circular agent is not yet tested.
+
+### Slanted walls with a circular agent (later on 2026-11-14)
+
+Scratch probes (`scratch/slant_circle*.py`), one world per case, a flat wall
+0.1 thick unless stated, agent driving straight at it.
+
+- **[Built]** At speed 0.5 the agent was blocked and slid along the wall at
+  90, 60, 45 and 30 degrees.
+- **[Built]** At speed 1.0 it was blocked at 90 and 60 degrees, but crossed the
+  wall plane at 45 and 30 degrees. A thicker wall (0.2, 0.3) did not fix this.
+- **[Built]** Raising VMAS's collision force from 100 to 10,000 held the wall at
+  60, 45 and 30 degrees at speed 1.0. A force of 1,000 held 45 but not 30.
+- **[Built]** No bounce was seen: the agent blocks and slides. A bounce would
+  need a reflection hook.
+- **[Open]** Whether a collision force of 10,000 is stable for pushing planks,
+  chasers and moving walls. Not tested.
