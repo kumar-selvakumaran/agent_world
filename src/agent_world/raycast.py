@@ -15,6 +15,7 @@ from dataclasses import dataclass
 import torch
 from torch import Tensor
 
+from agent_world.food import Food, paint as paint_food
 from agent_world.patch import Patch, paint
 
 _EPS = 1e-6
@@ -129,12 +130,14 @@ def render(
     palette: Palette = Palette(),
     visible: Tensor | None = None,
     patches: tuple[Patch, ...] = (),
+    food: Food | None = None,
 ) -> tuple[Tensor, Tensor]:
     """Colour and depth seen along each ray.
 
     Args:
         visible: optional [E] bool mask; entities marked False are not drawn.
         patches: floor patches painted over the checkerboard.
+        food: floor food painted over the ground.
 
     Returns:
         rgb [B, P, 3] in [0, 1] and depth [B, P], clipped to ``max_range``.
@@ -157,6 +160,8 @@ def render(
 
     for patch in patches:
         ground_rgb = paint(ground_xy, patch, ground_rgb)
+    if food is not None:
+        ground_rgb = paint_food(ground_xy, food, ground_rgb)
 
     # Entities: top faces at full colour, vertical faces darker.
     hit_z = origin[:, None, 2] + t_entity.nan_to_num(posinf=0.0) * dirs[..., 2]

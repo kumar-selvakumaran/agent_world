@@ -25,6 +25,7 @@ from vmas.simulator.scenario import BaseScenario
 from vmas.simulator.utils import ScenarioUtils
 
 from agent_world.camera import CameraConfig, local_ray_directions, world_rays
+from agent_world import food
 from agent_world.patch import Patch, inside
 from agent_world.raycast import Palette, Scene, render
 
@@ -86,6 +87,11 @@ class WorldConfig:
     """Turn rate inside a patch, in radians per second; negative is clockwise.
     Above ``max_turn_rate`` on purpose: an agent on the patch cannot turn
     counter-clockwise, it can only slow the clockwise turn."""
+    food_per_room: int = 24
+    """Food discs on the floor of each room; 0 for none."""
+    food_radius: float = 0.08
+    food_respawn_time: float = 5.0
+    """Seconds until eaten food reappears elsewhere in its room."""
     spectator: bool = False
     """Add a ghost agent for a human observer. Leave off for training: every
     agent costs one rendered view per step."""
@@ -183,6 +189,9 @@ class Scenario(BaseScenario):
             )
 
         self._build_static_scene(device)
+        n_food = cfg.food_per_room * cfg.n_rooms
+        self._food_xy = torch.zeros(batch_dim, n_food, 2, device=device)
+        self._food_timer = torch.zeros(batch_dim, n_food, device=device)
         self._local_dirs = local_ray_directions(cfg.camera, device)
         return world
 
@@ -294,6 +303,27 @@ class Scenario(BaseScenario):
         for agent in self.world.agents:
             heading = (torch.rand(n, 1, device=self.world.device) * 2 - 1) * torch.pi
             agent.set_rot(heading, batch_index=env_index)
+        i = slice(None) if env_index is None else env_index
+        self._food_xy[i] = self._sample_food(n).reshape(-1, *self._food_xy.shape[1:])
+        self._food_timer[i] = 0.0
+
+    def _sample_food(self, n: int) -> Tensor:
+        cfg = self.cfg
+        margin = cfg.wall_thickness / 2 + 2 * cfg.agent_radius
+        return food.sample(
+            n, cfg.food_per_room, cfg.n_rooms, cfg.room_size, margin, self.world.device
+        )
+
+    def post_step(self) -> None:
+        cfg = self.cfg
+        if cfg.food_per_room == 0:
+            return
+        pos = torch.stack([a.state.pos for a in self.world.agents], dim=1)
+        food.step(
+            self._food_xy, self._food_timer, pos, ~self._is_ghost[: len(self.world.agents)],
+            cfg.agent_radius + cfg.food_radius, cfg.food_respawn_time, self.world.dt,
+            self._sample_food(self.world.batch_dim),
+        )
 
     def scene(self) -> Scene:
         """Snapshot of everything visible, ready for ray casting."""
@@ -306,6 +336,11 @@ class Scenario(BaseScenario):
             color=self._color,
         )
 
+    def _food(self) -> food.Food | None:
+        if self.cfg.food_per_room == 0:
+            return None
+        return food.Food(self._food_xy, self._food_timer <= 0, self.cfg.food_radius)
+
     def view(self, agent: Agent) -> tuple[Tensor, Tensor]:
         """What ``agent`` sees: rgb [B, H, W, 3] in [0, 1] and depth [B, H, W]."""
         cam = self.cfg.camera
@@ -316,7 +351,7 @@ class Scenario(BaseScenario):
         visible = ~self._is_ghost
         visible[self._index[agent.name]] = True
         rgb, depth = render(
-            origin, dirs, self.scene(), cam.max_range, self.cfg.palette, visible, self._patches
+            origin, dirs, self.scene(), cam.max_range, self.cfg.palette, visible, self._patches, self._food()
         )
         batch = rgb.shape[0]
         return (
