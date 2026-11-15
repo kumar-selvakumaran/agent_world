@@ -75,6 +75,13 @@ so it cannot turn anti-clockwise on the patch: counter-steering only slows the s
 To cross, turn before the patch and enter at an angle. Turn it off with
 `WorldConfig(rotating_patches=False)`.
 
+### Food
+
+Each room has `food_per_room` (24) ochre discs of radius `food_radius` (0.08) painted on the
+floor; they are not entities, so they cost almost no throughput. An agent whose centre is within
+its radius plus the food radius eats it (the ghost spectator does not). The food reappears at a
+new random spot in the same room after `food_respawn_time` (5 s). About 6 are in view on average.
+
 ### The view
 
 The eye sits `eye_height` above the ground, above the agent and taller than
