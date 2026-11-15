@@ -287,6 +287,21 @@ with building an environment to test such systems.
   pyglet 2 override that keeps the explorer window working removed it.
   **[Kumar]** No top-down map view for now; the explorer stays as it is.
 
+## 15. The chase demo, the cooldown and a north-star scenario (2026-11-14, later)
+
+- **[Built]** A script, `scripts/chase_demo.py`, records a chase as the ghost spectator
+  sees it, to `outputs/chase.gif`.
+- **[Kumar]** The bump cooldown should give the agent time to turn a full circle to see
+  what hit it, turn away and head off. **[Built]** It is now 7 seconds.
+- **[Built]** Measured while building the demo: in contact an agent turns at about 1.43
+  rad/s, not the commanded 2, so a full turn takes about 4.4 s. A chaser pressing on an
+  agent settles about 0.004 apart, so a touch now counts within 0.02 of contact.
+- **[Built]** The agent's real top speed is about 0.72 of the commanded 1.0, so a chaser
+  at 0.7 keeps pace with it. **[Open]** Whether to fix this.
+- **[Kumar]** A north-star scenario, logged and not to be built: a light-and-mirror
+  puzzle needing multi-stage inference and non-greedy planning. See
+  [world-spec.md](world-spec.md).
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.

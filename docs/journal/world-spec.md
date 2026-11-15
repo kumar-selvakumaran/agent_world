@@ -302,6 +302,47 @@ Added 2026-11-14.
 
 - **[Kumar]** The patch turn rate of 2.5 rad/s feels right.
 
+### Bump cooldown (later on 2026-11-14)
+
+- **[Kumar]** Successive hits by a chaser should be far enough apart for the agent
+  to turn a full circle to see what hit it, then turn again and head away.
+- **[Built]** The cooldown is now 7 seconds (was 1). Measured: in contact the agent
+  turns at about 1.43 rad/s, not the commanded 2, so a full turn takes about 4.4 s,
+  turning away up to about 2.2 s more, plus a moment to start moving.
+- **[Built]** A touch now counts within 0.02 of contact, because a chaser pressing
+  on an agent settles 0.004 apart; before, continued pressing never bumped again.
+
+## North-star scenario: the mirror puzzle (aspirational)
+
+Logged 2026-11-14. **Not planned and not to be built now.** It records the kind of
+reasoning the world is ultimately for.
+
+- **[Kumar]** A puzzle like the light-and-mirror games Kumar played growing up. Rays
+  come in through a small hole. The player arranges mirrors, by moving pillars and
+  rotating things, so the rays are redirected and hit the right spot. The player must
+  also work out where the rays have to hit.
+- **[Kumar]** It needs inference over several stages and non-linear planning: a
+  constructive approach, not a greedy one.
+- **[Proposed]** What it would ask of the world, for later: reflective surfaces that
+  rays bounce off, objects that can be moved and rotated, a goal that is not given and
+  must be inferred, and effects that only show up after several linked changes.
+- **[Kumar]** The rays of light are visible to the agent, as are the pillars. Some
+  pillars are clamped to the ground and can only rotate, others are free to move;
+  levers orient them.
+- **[Proposed]** Feasibility in VMAS (assessed from what we know, **not tested**):
+  possible with VMAS plus our own code. VMAS supplies the pillars as entities (its
+  `movable` and `rotatable` flags give "rotate only" and "free"), their pushing and
+  the walls. We would write the light and the levers: a batched ray tracer that
+  reflects off mirror segments for a few bounces; levers as logic that sets a
+  pillar's angle; beams painted on the floor like the patch; a target spot that
+  lights when hit.
+- **[Proposed]** Risks: thin mirrors may be crossed at speed (0.1 thick held for
+  walls); at 64x48 a beam is only a pixel or two wide, so beams need to be bright and
+  wide (the same legibility concern as the food and arrows); a hidden target must be
+  found by exploring.
+- **[Open]** If and when to build it. Today's scenarios (the patch, chasers, food, blue
+  blocks) are simpler steps in the same direction.
+
 ## Status
 
 | Item | Status |
