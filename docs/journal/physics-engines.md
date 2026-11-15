@@ -109,3 +109,24 @@ The probes are in `scratch/` and not in the repository.
   full speed, and a box obstacle was penetrated and then ejected hard. The
   room's outer walls hold only because of the world-bounds clamp.
 - **[Open]** Our own collider for static walls and obstacles, to be decided.
+
+### Correction (later on 2026-11-14)
+
+The plank-pushing and wall-tunnelling failures above were measured with a
+**box-shaped agent**. VMAS handles box-against-box contact only in a thin
+boundary shell. A circular agent was then tested in the same world (one world
+per case, `scratch/sphere_vs_box.py`), driving at speed 1.0:
+
+| Case | Box agent | Circular agent |
+| --- | --- | --- |
+| Static box obstacle | Penetrated, then ejected hard | Held |
+| Static cylinder obstacle | Passed through | Held |
+| Plank, length 0.1 or 0.3, pushed | Tunnelled or bounced | Pushed ahead of the agent (plank moved to x = 1.30 and 1.35) |
+
+- **[Built]** With a circular agent VMAS pushes the plank physically and holds
+  static obstacles. The prebuilt `transport` scenario also uses circular agents
+  to push a box.
+- **[Built]** The box agent made contact worse. This weakens the
+  kinematic-plank and own-collider proposals above.
+- **[Open]** Circular physics with a box drawn inside it, for a visible heading.
+  Slanted-wall contact with a circular agent is not yet tested.
