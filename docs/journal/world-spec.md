@@ -209,6 +209,20 @@ Added 2026-11-14. Requirements stated by Kumar.
 - **[Open]** How to make the agent's contact with a slanted wall bounce. VMAS
   contacts are soft penalty forces; to be probed.
 
+## Cues and pain
+
+Added 2026-11-14. Requirements stated by Kumar.
+
+- **[Kumar]** Cues share a family but vary a little. For example thorns look
+  like grass: taller or greener grass.
+- **[Kumar]** Pain is caused by events the agent can see before the pain
+  arrives. For example an adversarial agent that touches the agent causes
+  severe pain.
+- **[Kumar]** Adversarial agents get a distinct visual signature, so the agent
+  learns to avoid them from having been hurt.
+- **[Proposed]** Pain and the agent's own motion (speed, turn rate) reach it as
+  a separate non-image observation. Not yet agreed.
+
 ## Status
 
 | Item | Status |

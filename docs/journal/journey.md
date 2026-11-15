@@ -195,6 +195,25 @@ with building an environment to test such systems.
 - **[Open]** The 4 GB of GPU memory bounds the number of parallel worlds.
   Chunking the rendering is one way round it; not yet investigated.
 
+## 11. Which engine, and what the world is for (2026-11-14)
+
+- **[Kumar]** Wanted flexible geometry, such as a U-shaped gripper body.
+  VMAS has only box, sphere and line shapes, so a concave body was tested with
+  joints. **[Built]** The joined U was unstable; see
+  [physics-engines.md](physics-engines.md).
+- Four engines were compared: VMAS, MuJoCo (MJWarp), Box2D and pymunk. Only
+  VMAS and MuJoCo batch worlds on the GPU. Measurements are in the comparison.
+- **[Built]** The MuJoCo renderer is much faster than our ray caster, but its
+  physics was 8 to 15 times slower than VMAS's, and one substep tunnelled.
+- **[Kumar]** The puzzles to build are tensor logic on top of convex shapes: a
+  floor current, a rotating patch before a doorway, a thorn field cleared by a
+  pushed plank, and a slanted wall. A door was dropped. See
+  [world-spec.md](world-spec.md).
+- **[Kumar]** The gripper is set aside: the agent is a box, and the engine stays
+  VMAS. **[Built]** The agent is now a box. A switch to MuJoCo is not planned.
+- **[Open]** Whether contacts with a slanted wall can bounce, since VMAS
+  contacts are soft penalty forces.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.
