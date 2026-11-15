@@ -49,9 +49,14 @@ SPECTATOR_NAME = "spectator"
 @dataclass(frozen=True)
 class WorldConfig:
     n_agents: int = 1
-    arena_size: float = 4.0
-    """Side length of the square room."""
-    n_obstacles: int = 6
+    room_size: float = 8.0
+    """Side length of each square room."""
+    n_rooms: int = 2
+    """Rooms are placed in a row along x, each pair joined by a doorway."""
+    doorway_width: float = 1.0
+    """Gap in the wall between two rooms, centred on the wall."""
+    n_obstacles: int = 12
+    """Spread over the rooms, one after the other."""
     spectator: bool = False
     """Add a ghost agent for a human observer. Leave off for training: every
     agent costs one rendered view per step."""
@@ -82,6 +87,14 @@ class WorldConfig:
     camera: CameraConfig = field(default_factory=CameraConfig)
     palette: Palette = field(default_factory=Palette)
 
+    @property
+    def arena_width(self) -> float:
+        return self.n_rooms * self.room_size
+
+    @property
+    def arena_height(self) -> float:
+        return self.room_size
+
 
 class Scenario(BaseScenario):
     def make_world(self, batch_dim: int, device: torch.device, **kwargs) -> World:
@@ -95,12 +108,12 @@ class Scenario(BaseScenario):
 
         # Walls stop ordinary agents; these bounds also stop the spectator,
         # which passes through walls, from leaving the room.
-        bound = cfg.arena_size / 2 - cfg.wall_thickness / 2 - cfg.agent_radius
+        margin = cfg.wall_thickness / 2 + cfg.agent_radius
         world = World(
             batch_dim,
             device,
-            x_semidim=bound,
-            y_semidim=bound,
+            x_semidim=cfg.arena_width / 2 - margin,
+            y_semidim=cfg.arena_height / 2 - margin,
             collision_force=cfg.collision_force,
             substeps=cfg.substeps,
         )
@@ -114,15 +127,16 @@ class Scenario(BaseScenario):
         if cfg.spectator:
             self._add_agent(world, SPECTATOR_NAME, SPECTATOR_COLOR, ghost=True)
 
+        self._wall_specs = self._make_wall_specs()
         self._walls = [
             self._add_landmark(
                 world,
                 f"wall_{i}",
-                Box(cfg.arena_size + cfg.wall_thickness, cfg.wall_thickness),
+                Box(length, cfg.wall_thickness),
                 cfg.wall_height,
                 WALL_COLOR,
             )
-            for i in range(4)
+            for i, (_, _, length) in enumerate(self._wall_specs)
         ]
         self._obstacles = []
         for i in range(cfg.n_obstacles):
@@ -137,6 +151,24 @@ class Scenario(BaseScenario):
         self._build_static_scene(device)
         self._local_dirs = local_ray_directions(cfg.camera, device)
         return world
+
+    def _make_wall_specs(self) -> list[tuple[tuple[float, float], float, float]]:
+        """Every wall as (centre, rotation, length): the outer walls, then the
+        wall between each pair of rooms, split in two around its doorway."""
+        cfg = self.cfg
+        w, h, t = cfg.arena_width, cfg.arena_height, cfg.wall_thickness
+        specs = [
+            ((0.0, -h / 2), 0.0, w + t),
+            ((0.0, h / 2), 0.0, w + t),
+            ((-w / 2, 0.0), torch.pi / 2, h + t),
+            ((w / 2, 0.0), torch.pi / 2, h + t),
+        ]
+        piece = (h - cfg.doorway_width) / 2
+        offset = (cfg.doorway_width + piece) / 2
+        for k in range(1, cfg.n_rooms):
+            x = -w / 2 + k * cfg.room_size
+            specs += [((x, -offset), torch.pi / 2, piece), ((x, offset), torch.pi / 2, piece)]
+        return specs
 
     def _add_agent(self, world: World, name: str, color: RGB, ghost: bool = False) -> None:
         cfg = self.cfg
@@ -196,17 +228,9 @@ class Scenario(BaseScenario):
 
     def reset_world_at(self, env_index: int | None = None) -> None:
         cfg = self.cfg
-        half = cfg.arena_size / 2
         n = self.world.batch_dim if env_index is None else 1
 
-        # Walls: bottom, top (along x), then left, right (rotated 90 degrees).
-        wall_poses = [
-            ((0.0, -half), 0.0),
-            ((0.0, half), 0.0),
-            ((-half, 0.0), torch.pi / 2),
-            ((half, 0.0), torch.pi / 2),
-        ]
-        for wall, (pos, rot) in zip(self._walls, wall_poses):
+        for wall, (pos, rot, _) in zip(self._walls, self._wall_specs):
             wall.set_pos(
                 torch.tensor(pos, device=self.world.device).expand(n, 2),
                 batch_index=env_index,
@@ -216,16 +240,23 @@ class Scenario(BaseScenario):
                 batch_index=env_index,
             )
 
+        # Agents start in the first room; obstacles are spread over all rooms.
         margin = cfg.wall_thickness / 2 + cfg.obstacle_size
-        bounds = (-half + margin, half - margin)
-        ScenarioUtils.spawn_entities_randomly(
-            self._obstacles + self.world.agents,
-            self.world,
-            env_index,
-            min_dist_between_entities=cfg.obstacle_size + 2 * cfg.agent_radius + 0.1,
-            x_bounds=bounds,
-            y_bounds=bounds,
-        )
+        y_bounds = (-cfg.arena_height / 2 + margin, cfg.arena_height / 2 - margin)
+        for room in range(cfg.n_rooms):
+            left = -cfg.arena_width / 2 + room * cfg.room_size
+            entities = self._obstacles[room :: cfg.n_rooms]
+            if room == 0:
+                entities = entities + self.world.agents
+            if entities:
+                ScenarioUtils.spawn_entities_randomly(
+                    entities,
+                    self.world,
+                    env_index,
+                    min_dist_between_entities=cfg.obstacle_size + 2 * cfg.agent_radius + 0.1,
+                    x_bounds=(left + margin, left + cfg.room_size - margin),
+                    y_bounds=y_bounds,
+                )
         for agent in self.world.agents:
             heading = (torch.rand(n, 1, device=self.world.device) * 2 - 1) * torch.pi
             agent.set_rot(heading, batch_index=env_index)
