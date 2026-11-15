@@ -260,6 +260,29 @@ Added 2026-11-14.
 - **[Built]** Arrowheads are 0.6 long and 0.6 wide (were 0.3), drawn as straight
   triangles tangent to the ring, which sits at 60% of the patch radius so the
   arrowheads stay inside the pink disc.
+## Chasers
+
+- **[Built]** Scripted chasers (`chaser.py`): movable circular landmarks, not
+  agents, so they cost no extra rendered view. `chasers_per_room` (default 2)
+  in each room; speed 0.7 of the agent's maximum, same maximum turn rate.
+- **[Built]** Vision is partial: the nearest non-ghost agent is seen only within
+  5 units, within 60 degrees of the heading, and with one ray (the existing
+  `intersect`) not blocked by a wall or obstacle. Chasers do not see through
+  the room walls; the doorway is open. Seeing: turn toward it and drive. Not
+  seeing: stop dead (no wandering, no memory).
+- **[Built]** The rotating patch turns a chaser's heading like an agent's.
+- **[Built]** A touch bumps the agent 0.5 units along the chaser-to-agent
+  direction over 3 steps (a force added each step, like the floor current);
+  that chaser then waits 1 s. `scenario._chasers.touched` ([agents, B] bool) is
+  True on the step a bump starts, for a later pain system.
+- **[Built]** Spawn: random in the room; room-0 chasers start at least 4 units
+  from every agent, chosen from 128 candidates per chaser (if none qualifies,
+  the farthest is used, which can happen with several agents).
+- **[Built]** Look: red and black bands across the body, 6 in all. The ray caster
+  takes an optional per-entity second colour and stripe count.
+- **[Open]** Health and damage from a bump (`touched` is the hook).
+- **[Open]** Chasers can push each other and obstacles; whether they should is
+  undecided. Chasers cannot be seen through low obstacles (all block the ray).
 
 ## Status
 
