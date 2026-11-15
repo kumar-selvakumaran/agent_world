@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from agent_world import CameraConfig, WorldConfig, make_env
+from agent_world import CameraConfig, Scenario, WorldConfig, make_env
 from agent_world.scenario import AGENT_COLORS, SPECTATOR_COLOR
 
 CAMERA = CameraConfig(width=48, height=32)
@@ -113,3 +113,35 @@ def test_full_speed_agent_does_not_pass_a_static_obstacle(obstacle):
     for _ in range(40):
         env.step([torch.tensor([[1.0, 0.0]])])
         assert agent.state.pos[0, 0] < 0.0
+
+
+def test_full_speed_agent_does_not_cross_a_slanted_wall():
+    import math
+
+    from vmas.simulator.core import Box, Landmark
+
+    class Slanted(Scenario):
+        def make_world(self, batch_dim, device, **kwargs):
+            world = super().make_world(batch_dim, device, **kwargs)
+            self.slant = Landmark(name="slant", shape=Box(8.0, 0.1), movable=False, collide=True)
+            world.add_landmark(self.slant)
+            return world
+
+    import vmas
+
+    phi = math.radians(45)
+    env = vmas.make_env(
+        scenario=Slanted(), num_envs=1, device="cpu",
+        config=WorldConfig(n_obstacles=0, camera=CAMERA),
+    )
+    env.reset()
+    env.scenario.slant.set_rot(torch.full((1, 1), phi), batch_index=None)
+    env.scenario.slant.set_pos(torch.zeros(1, 2), batch_index=None)
+    agent = env.agents[0]
+    agent.set_pos(torch.tensor([[-0.8, 0.0]]), batch_index=None)
+    agent.set_rot(torch.zeros(1, 1), batch_index=None)
+    normal = torch.tensor([-math.sin(phi), math.cos(phi)])
+    side = torch.sign(torch.tensor([-0.8, 0.0]) @ normal)
+    for _ in range(40):
+        env.step([torch.tensor([[1.0, 0.0]])])
+        assert (agent.state.pos[0] @ normal) * side > 0
