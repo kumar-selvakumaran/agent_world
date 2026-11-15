@@ -75,6 +75,16 @@ so it cannot turn anti-clockwise on the patch: counter-steering only slows the s
 To cross, turn before the patch and enter at an angle. Turn it off with
 `WorldConfig(rotating_patches=False)`.
 
+### Chasers
+
+Each room holds `chasers_per_room` (2) red-and-black striped chasers. They are
+scripted landmarks, not agents. A chaser sees the nearest agent only within 5
+units, 60 degrees of its heading and a clear line of sight (walls included, the
+doorway is open); it then turns toward the agent and drives at 0.7 of the agent's
+speed, otherwise it stops. Touching an agent shoves it 0.5 units over 3 steps,
+then the chaser waits 1 s. The rotating patch turns chasers too. Ghosts are ignored.
+`WorldConfig(chasers_per_room=0)` turns them off.
+
 ### The view
 
 The eye sits `eye_height` above the ground, above the agent and taller than
@@ -101,6 +111,7 @@ Leave it off for training: each agent costs one rendered view per step.
 
 ```
 src/agent_world/
+  chaser.py     scripted chasers
   camera.py     pose -> viewing rays            (pure tensor maths)
   raycast.py    rays + scene -> colour, depth   (pure tensor maths)
   scenario.py   the VMAS scenario: entities, physics, observation
