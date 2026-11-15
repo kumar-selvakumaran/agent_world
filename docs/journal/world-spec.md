@@ -280,8 +280,7 @@ Added 2026-11-14.
 | Runs on GPU when available | **[Built]**, not yet run on a GPU |
 | Benchmark script and instructions | **[Built]** |
 | Tasks and reward (reward is currently zero) | Not started |
-| Food (eaten, respawns) | **[Built]** |
-| Energy, pain, death | Not started |
+| Food, energy, pain, death | Food **[Built]**; the rest not started |
 | Rooms, doors, risk gradient | Not started |
 | Scripted agents with hidden inclinations | Not started |
 | Procedural generation beyond random placement | Not started |
