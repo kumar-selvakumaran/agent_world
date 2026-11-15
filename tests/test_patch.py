@@ -4,7 +4,7 @@ import torch
 
 from agent_world.patch import Patch, inside, paint
 
-RING = 0.7  # default ring radius
+RING = 0.6  # default ring radius
 
 
 def at(r, angle):
@@ -32,11 +32,11 @@ def test_disc_is_pink_and_the_ring_is_black():
 
 
 def test_arrowheads_point_the_way_it_spins():
-    # Arrow centred at angle 0. A point off the ring by 0.1 is inside the wide
+    # Arrow centred at angle 0. A point off the ring by 0.15 is inside the wide
     # (trailing) end of the arrowhead but outside its narrow (leading) end.
     step = 0.1 / RING
     for rate, trailing in ((-1.0, +step), (1.0, -step)):  # clockwise trails at +angle
         patch = Patch(center=(0.0, 0.0), rate=rate)
         ink = torch.tensor(patch.ink)
-        assert torch.allclose(colour_at(at(RING + 0.1, trailing), patch), ink)
-        assert not torch.allclose(colour_at(at(RING + 0.1, -trailing), patch), ink)
+        assert torch.allclose(colour_at(at(RING + 0.15, trailing), patch), ink)
+        assert not torch.allclose(colour_at(at(RING + 0.15, -trailing), patch), ink)
