@@ -302,6 +302,15 @@ with building an environment to test such systems.
   puzzle needing multi-stage inference and non-greedy planning. See
   [world-spec.md](world-spec.md).
 
+## 17. Learning curriculums (2026-11-14, later)
+
+- **[Kumar]** The north-star scenario needs concepts the agent has no basis for: light,
+  line of sight, reflection. A new document, [curriculum.md](curriculum.md), records
+  strategies for teaching them.
+- **[Kumar]** First strategy: demonstrations by scripted agents with deterministic
+  policies. More are to be added. Nothing is built; the chasers are the existing
+  building block.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.
