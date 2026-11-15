@@ -146,3 +146,21 @@ Scratch probes (`scratch/slant_circle*.py`), one world per case, a flat wall
   need a reflection hook.
 - **[Open]** Whether a collision force of 10,000 is stable for pushing planks,
   chasers and moving walls. Not tested.
+
+### Collision force and substeps (later on 2026-11-14)
+
+Scratch probes (`scratch/collision_force_*.py`), circular agent, one world per
+case, speed 1.0, eight cases: two plank pushes, a moving wall, two agents
+head-on, slanted walls at 45 and 30 degrees, a static box and a static cylinder.
+
+- **[Built]** Collision force 100 (default), 1 substep: the plank, moving wall
+  and static obstacles held. Two agents closing head-on and the slanted walls
+  were crossed.
+- **[Built]** Collision force 10,000, 1 substep: unstable. Peak speeds of 50 to
+  218 (violent ejections), and the static obstacles and head-on agents were
+  crossed. It held the slanted walls, but this is not usable.
+- **[Built]** Collision force 1,000 with 5 substeps: peak speeds near 1.0, no
+  ejections, everything held except the head-on case and, in one probe, the 30
+  degree wall. Collision force 10,000 with 20 substeps also held head-on.
+- **[Open]** The 30 degree result depended on the start distance, so it is
+  marginal. Substeps multiply the cost of physics.
