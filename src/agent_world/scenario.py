@@ -57,6 +57,9 @@ class WorldConfig:
     agent costs one rendered view per step."""
 
     agent_radius: float = 0.1
+    """Radius of the circle around the agent, used for room bounds and spawn spacing."""
+    agent_size: tuple[float, float] = (0.16, 0.12)
+    """Box length (along the heading) and width. Fits inside ``agent_radius``."""
     agent_height: float = 0.25
     max_speed: float = 1.0
     """Forward speed at full action, in world units per second."""
@@ -124,7 +127,7 @@ class Scenario(BaseScenario):
         cfg = self.cfg
         agent = Agent(
             name=name,
-            shape=Sphere(cfg.agent_radius),
+            shape=Box(*cfg.agent_size),
             dynamics=DiffDrive(world),
             u_range=[1.0, 1.0],
             u_multiplier=[cfg.max_speed, cfg.max_turn_rate],

@@ -88,3 +88,11 @@ def test_runs_on_gpu():
     assert all(o.device.type == "cuda" for o in obs + rewards)
     row, col = below_eye_pixel(env)
     assert torch.allclose(obs[0][:, row, col].cpu(), torch.tensor(AGENT_COLORS[0]).expand(4, 3), atol=1e-5)
+
+
+def test_agent_is_a_box():
+    from vmas.simulator.core import Box
+
+    cfg = WorldConfig(camera=CAMERA)
+    shape = make_env(num_envs=1, config=cfg).agents[0].shape
+    assert isinstance(shape, Box) and (shape.length, shape.width) == cfg.agent_size
