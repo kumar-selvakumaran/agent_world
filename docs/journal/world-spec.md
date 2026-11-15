@@ -253,6 +253,14 @@ Added 2026-11-14.
   entry and command combinations found 157 that cross through the doorway.
 - **[Open]** The value 2.5 is a proposal, to be confirmed.
 
+### Bigger arrows (later on 2026-11-14)
+
+- **[Kumar]** The floor arrows should be twice as big. It is acceptable for them
+  to extend past the circle, but they should be pushed inwards so they do not.
+- **[Built]** Arrowheads are 0.6 long and 0.6 wide (were 0.3), drawn as straight
+  triangles tangent to the ring, which sits at 60% of the patch radius so the
+  arrowheads stay inside the pink disc.
+
 ## Status
 
 | Item | Status |

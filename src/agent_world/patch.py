@@ -24,13 +24,13 @@ class Patch:
     radius: float = 1.0
     rate: float = -1.0
     """Turn rate added inside the patch, in radians per second. Negative is clockwise."""
-    ring_fraction: float = 0.7
+    ring_fraction: float = 0.6
     """Radius of the black ring, as a fraction of the patch radius."""
     ring_width: float = 0.06
     n_arrows: int = 4
     """Arrowheads evenly spaced around the ring."""
-    arrow_length: float = 0.3
-    arrow_width: float = 0.3
+    arrow_length: float = 0.6
+    arrow_width: float = 0.6
     color: RGB = (0.95, 0.55, 0.70)
     ink: RGB = (0.0, 0.0, 0.0)
 
@@ -48,12 +48,15 @@ def paint(xy: Tensor, patch: Patch, base: Tensor) -> Tensor:
     ring_radius = patch.radius * patch.ring_fraction
     on_ring = (r - ring_radius).abs() <= patch.ring_width / 2
 
-    # Offset to the nearest arrowhead, as arc length ahead (u) and radially off the ring (v).
+    # Position relative to the nearest arrowhead, in its own straight frame:
+    # u along the spin direction (tangent to the ring), v radially outwards.
     step = 2 * math.pi / patch.n_arrows
     delta = torch.remainder(phi + step / 2, step) - step / 2
     spin = 1.0 if patch.rate >= 0 else -1.0
-    u = spin * ring_radius * delta
-    v = r - ring_radius
+    cos_k, sin_k = torch.cos(phi - delta), torch.sin(phi - delta)
+    rel_x, rel_y = d[..., 0] - ring_radius * cos_k, d[..., 1] - ring_radius * sin_k
+    u = spin * (-sin_k * rel_x + cos_k * rel_y)
+    v = cos_k * rel_x + sin_k * rel_y
     half = patch.arrow_length / 2
     on_arrow = (u.abs() <= half) & (v.abs() <= patch.arrow_width / 2 * (half - u) / patch.arrow_length)
 
