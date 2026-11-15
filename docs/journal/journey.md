@@ -259,6 +259,34 @@ with building an environment to test such systems.
 - **[Open]** Blue blocks that make a touching chaser respawn far away; making
   the chasers cheaper.
 
+## 14. Throughput and training time (2026-11-14, later)
+
+- **[Built]** Per step at 256 worlds (1 agent, default settings) after batching:
+  about 564 ms, of which VMAS physics about 399, the observation render about
+  130 and the chaser logic about 21. Without chasers the physics is about 140.
+- **[Built]** The chaser logic is now batched across chasers (one line-of-sight
+  call, no per-pair overlap checks): 84 to 21 ms, and the whole step 685 to 564
+  ms. The remaining cost is VMAS checking each moving chaser against every wall
+  and obstacle.
+- **[Kumar]** Keep the chasers as they are for now.
+- **[Proposed]** Faster options if training time becomes a problem, none built:
+  - **Own chaser-versus-wall push-out** in tensor code (about 25 lines). Chasers
+    stop colliding with walls and obstacles in VMAS, so VMAS skips those pairs.
+    Estimated step 564 to about 300 ms (not measured). It is custom collision
+    code, geometry only, for one kind of moving circle.
+  - **One chaser per room:** about half the chaser cost; changes the design.
+  - **Fewer physics substeps:** about twice as fast, but the contact leaks return.
+  - **Fewer obstacles:** 6 instead of 12 is about 22% faster.
+  - **A larger batch**, within the 4 GB limit of about 2,000 worlds.
+- **Illustration, not a target:** at about 350 world-steps/s, 10 million samples
+  take about 8 hours, 100 million about 3.3 days and 1 billion about 33 days.
+  Before the rooms and features (about 1,400/s) they took 2 hours, 20 hours and
+  8 days. **[Open]** Whether this is enough depends on a training budget that is
+  not defined yet.
+- **[Built]** VMAS's native renderer fails here: it needs the old pyglet, and the
+  pyglet 2 override that keeps the explorer window working removed it.
+  **[Kumar]** No top-down map view for now; the explorer stays as it is.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.
