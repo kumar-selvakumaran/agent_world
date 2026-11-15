@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from agent_world import config  # noqa: F401  (sets download locations first)
+
 import torch
 
 from agent_world.camera import CameraConfig
