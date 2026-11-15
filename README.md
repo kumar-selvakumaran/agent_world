@@ -113,7 +113,7 @@ least 4 units from every agent.
 
 ![A chaser runs into a blue block and vanishes](docs/media/blue_block_lure.gif)
 
-*The intended use of a blue block: the agent stands just behind it and the chaser, following the straight line toward the agent, touches the block and vanishes. It respawns at least 4 units from the agent, out of view here.*
+*The intended use of a blue block: a lure. The agent walks to the block's far side and stops just past its corner, hiding behind it. The chaser curves in along a clear line of sight, clips the block and vanishes, then respawns in its own room at least 4 units from the agent (lower left here). A chaser cannot see through a block, so the agent has to stand just beside the line, not exactly behind the block.*
 
 ### Food
 
