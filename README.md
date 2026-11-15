@@ -43,7 +43,7 @@ draws its own views and uses pyglet only for the explorer window. VMAS's own
 ## The world
 
 A walled square room with a few static obstacles (boxes and cylinders of
-different heights) and one or more agents. Each agent is a small box (`agent_size`), so its heading is visible. Agents steer like a vehicle: the
+different heights) and one or more agents. Each agent is a circle in the physics and is drawn as a small box inside it (`agent_size`), so its heading is visible. Agents steer like a vehicle: the
 action is `(forward speed, turn rate)`, each in `[-1, 1]`. There is no task
 yet; the reward is zero.
 
