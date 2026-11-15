@@ -15,6 +15,7 @@ import torch
 from torch import Tensor
 from vmas.simulator.core import Landmark, Sphere
 
+from agent_world.blocks import NAME as BLOCK, touching
 from agent_world.patch import inside
 from agent_world.raycast import Scene, intersect
 
@@ -36,6 +37,7 @@ class Chasers:
             Landmark(
                 name=f"{NAME}_{i}", shape=Sphere(cfg.agent_radius), movable=True,
                 collide=True, drag=0.0, color=RED,
+                collision_filter=lambda e: not e.name.startswith(BLOCK),
             )
             for i in range(n)
         ]
@@ -50,27 +52,32 @@ class Chasers:
     def _agents(self):
         return [a for a in self.world.agents if a.collide]
 
-    def reset(self, env_index, obstacles, x_bounds, y_bounds):
-        """x_bounds(room) -> (lo, hi). Obstacles must already be placed."""
+    def _spawn(self, room, n, agents, obst, clear):
+        """Best of CANDIDATES random spots in ``room``: far from agents (if given), clear of ``obst``."""
+        lo, hi = self.x_bounds(room)
+        y = self.y_bounds
+        u = torch.rand(n, CANDIDATES, 2, device=self.world.device)
+        cand = torch.stack([lo + u[..., 0] * (hi - lo), y[0] + u[..., 1] * (y[1] - y[0])], -1)
+        a = torch.cdist(cand, agents).amin(-1) if agents is not None else torch.full_like(cand[..., 0], MIN_START_DIST)
+        o = (torch.cdist(cand, obst) - clear).amin(-1) if obst is not None else torch.zeros_like(a)
+        score = 10 * ((a >= MIN_START_DIST) & (o >= 0)) + a.clamp(max=MIN_START_DIST) + o.clamp(max=0)
+        return cand[torch.arange(n), score.argmax(-1)]
+
+    def reset(self, env_index, statics, x_bounds, y_bounds):
+        """statics: [(landmarks, clearance)], already placed. x_bounds(room) -> (lo, hi)."""
         cfg, dev = self.cfg, self.world.device
+        self.x_bounds, self.y_bounds, self.statics = x_bounds, y_bounds, statics
         sel = slice(None) if env_index is None else slice(env_index, env_index + 1)
         n = self.world.batch_dim if env_index is None else 1
         agents = torch.stack([a.state.pos[sel] for a in self._agents()], dim=1)
-        obst = torch.stack([o.state.pos[sel] for o in obstacles], dim=1) if obstacles else None
+        obst, clear = self._static(sel)
         for c, room in zip(self.landmarks, self.room):
-            lo, hi = x_bounds(room)
-            u = torch.rand(n, CANDIDATES, 2, device=dev)
-            cand = torch.stack(
-                [lo + u[..., 0] * (hi - lo), y_bounds[0] + u[..., 1] * (y_bounds[1] - y_bounds[0])], -1
-            )
-            a = torch.cdist(cand, agents).amin(-1) if room == 0 else torch.full_like(cand[..., 0], MIN_START_DIST)
-            o = torch.cdist(cand, obst).amin(-1) if obst is not None else torch.full_like(a, 1.0)
-            o_min = cfg.obstacle_size / 2 + 2 * cfg.agent_radius
-            score = 10 * ((a >= MIN_START_DIST) & (o >= o_min)) + a.clamp(max=MIN_START_DIST) + o.clamp(max=o_min)
-            pick = score.argmax(-1)
-            c.set_pos(cand[torch.arange(n), pick], batch_index=env_index)
+            pos = self._spawn(room, n, agents if room == 0 else None, obst, clear)
+            c.set_pos(pos, batch_index=env_index)
             c.set_vel(torch.zeros(n, 2, device=dev), batch_index=env_index)
-            obst = torch.cat([obst, c.state.pos[sel][:, None]], 1) if obst is not None else c.state.pos[sel][:, None]
+            new = c.state.pos[sel][:, None]
+            obst = new if obst is None else torch.cat([obst, new], 1)
+            clear = torch.cat([clear, clear.new_full((1,), cfg.obstacle_size / 2 + 2 * cfg.agent_radius)])
         self.heading[sel] = (torch.rand(n, len(self.landmarks), device=dev) * 2 - 1) * math.pi
         self.cooldown[sel] = 0.0
         for i, c in enumerate(self.landmarks):
@@ -83,11 +90,33 @@ class Chasers:
         self.push_left[sel] = 0
         self.touched[:, sel] = False
 
-    def step(self, occluders: Scene) -> None:
+    def _static(self, sel):
+        """Positions [n, K, 2] and clearances [K] of obstacles and blocks (None, None if there are none)."""
+        pos = [torch.stack([l.state.pos[sel] for l in ls], 1) for ls, _ in self.statics if ls]
+        clear = [torch.full((len(ls),), c, device=self.world.device) for ls, c in self.statics if ls]
+        return (torch.cat(pos, 1), torch.cat(clear)) if pos else (None, torch.zeros(0, device=self.world.device))
+
+    def respawn_on_blocks(self, blocks, agents) -> None:
+        """Chasers touching a block vanish and reappear in their own room, far from every agent."""
+        cfg = self.cfg
+        cpos = torch.stack([c.state.pos for c in self.landmarks], dim=1)
+        hit = touching(cpos, blocks, cfg.block_size / 2, cfg.agent_radius)  # [B, C]
+        obst, clear = self._static(slice(None))
+        B = cpos.shape[0]
+        for i, (c, room) in enumerate(zip(self.landmarks, self.room)):
+            h = hit[:, i, None]
+            c.set_pos(torch.where(h, self._spawn(room, B, agents, obst, clear), c.state.pos), batch_index=None)
+            c.set_vel(c.state.vel * ~h, batch_index=None)
+        self.heading = torch.where(hit, (torch.rand_like(self.heading) * 2 - 1) * math.pi, self.heading)
+        self.cooldown = self.cooldown * ~hit
+
+    def step(self, occluders: Scene, blocks=None) -> None:
         cfg, world = self.cfg, self.world
         dt = world.dt
         agents = self._agents()
         apos = torch.stack([a.state.pos for a in agents], dim=1)  # [B, A, 2]
+        if blocks is not None:
+            self.respawn_on_blocks(blocks, apos)
         cpos = torch.stack([c.state.pos for c in self.landmarks], dim=1)  # [B, C, 2]
         B, C = cpos.shape[:2]
         A = apos.shape[1]
