@@ -230,3 +230,13 @@ def test_the_patch_is_visible_to_the_agent():
     obs = env.step([torch.zeros(1, 2)])[0][0][0]
     pink = torch.tensor(patch.color)
     assert ((obs - pink).abs().amax(-1) < 0.02).any()
+
+
+def test_chasers_are_counted_per_room_and_can_be_turned_off():
+    env = make_env(num_envs=2, device="cpu", config=WorldConfig(chasers_per_room=3, camera=CAMERA))
+    env.reset()
+    assert len(env.scenario._chasers.landmarks) == 6 and len(env.agents) == 1
+    env = make_env(num_envs=2, device="cpu", config=WorldConfig(chasers_per_room=0, camera=CAMERA))
+    env.reset()
+    env.step([torch.zeros(2, 2)])
+    assert not env.scenario._chasers.landmarks
