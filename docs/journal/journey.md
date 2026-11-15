@@ -342,6 +342,17 @@ with building an environment to test such systems.
   GIFs, the blue block GIF does not show where the chaser respawns, and the doorway
   crossing keeps the agent small. The patch spin is shown from the agent's own view.
 
+## 20. Studying stable-worldmodel (2026-11-15)
+
+- **[Kumar]** Saw stable-worldmodel, a library of world-model research environments, and
+  asked for an objective comparison with our world and a critical study of the repository.
+  Cloned into `scratch/` and read, not run. Notes in [swm-notes.md](swm-notes.md).
+- Found: its core worlds are 2D single-agent point worlds with easy success; its
+  "parallel" environments are a Python loop, not GPU batching; its evaluation hands the
+  planner the goal and has no hierarchy or counterfactual test; its variation spaces
+  are a good design. Nothing in it mentions VMAS.
+- **[Open]** Which of the ideas to borrow, if any.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.
