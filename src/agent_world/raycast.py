@@ -15,6 +15,8 @@ from dataclasses import dataclass
 import torch
 from torch import Tensor
 
+from agent_world.patch import Patch, paint
+
 _EPS = 1e-6
 _INF = float("inf")
 
@@ -126,11 +128,13 @@ def render(
     max_range: float,
     palette: Palette = Palette(),
     visible: Tensor | None = None,
+    patches: tuple[Patch, ...] = (),
 ) -> tuple[Tensor, Tensor]:
     """Colour and depth seen along each ray.
 
     Args:
         visible: optional [E] bool mask; entities marked False are not drawn.
+        patches: floor patches painted over the checkerboard.
 
     Returns:
         rgb [B, P, 3] in [0, 1] and depth [B, P], clipped to ``max_range``.
@@ -150,6 +154,9 @@ def render(
         origin.new_tensor(palette.ground_a),
         origin.new_tensor(palette.ground_b),
     )
+
+    for patch in patches:
+        ground_rgb = paint(ground_xy, patch, ground_rgb)
 
     # Entities: top faces at full colour, vertical faces darker.
     hit_z = origin[:, None, 2] + t_entity.nan_to_num(posinf=0.0) * dirs[..., 2]

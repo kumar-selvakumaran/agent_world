@@ -66,6 +66,14 @@ obs, rewards, dones, info = env.step(actions)
 one, and on the CPU otherwise; pass `device="cpu"` or `device="cuda:1"` to
 choose. Observations come back on `env.device`, so create actions there too.
 
+### The rotating patch
+
+Each doorway has a pink disc, 10 agent widths across (`patch_radius`), with a
+black ring and four arrowheads pointing the way it spins. An agent on it is
+turned clockwise at `patch_rate` (1 rad/s; the agent's own maximum is 2 rad/s).
+To cross straight it must keep turning counter-clockwise. Turn it off with
+`WorldConfig(rotating_patches=False)`.
+
 ### The view
 
 The eye sits `eye_height` above the ground, above the agent and taller than
