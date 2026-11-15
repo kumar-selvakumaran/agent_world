@@ -51,9 +51,10 @@ def test_agents_stay_inside_the_room():
     env.reset()
     for _ in range(150):
         env.step([torch.tensor([[1.0, 0.0]]).expand(8, 2) for _ in env.agents])
-    limit = cfg.arena_size / 2 - cfg.wall_thickness / 2 - cfg.agent_radius
+    margin = cfg.wall_thickness / 2 + cfg.agent_radius
+    limit = torch.tensor([cfg.arena_width / 2 - margin, cfg.arena_height / 2 - margin], device=env.device)
     for agent in env.agents:
-        assert agent.state.pos.abs().max() <= limit + 1e-2
+        assert (agent.state.pos.abs() <= limit + 1e-2).all()
 
 
 def test_spectator_is_a_ghost():
@@ -145,3 +146,22 @@ def test_full_speed_agent_does_not_cross_a_slanted_wall():
     for _ in range(40):
         env.step([torch.tensor([[1.0, 0.0]])])
         assert (agent.state.pos[0] @ normal) * side > 0
+
+
+def test_agents_start_in_the_first_room():
+    env = make_env(num_envs=8, seed=3, config=WorldConfig(n_agents=3, camera=CAMERA))
+    env.reset()
+    for agent in env.agents:
+        assert (agent.state.pos[:, 0] < 0).all()
+
+
+def test_full_speed_agent_passes_the_doorway_but_not_the_wall():
+    env = make_env(num_envs=2, device="cpu", config=WorldConfig(n_obstacles=0, camera=CAMERA))
+    env.reset()
+    agent = env.agents[0]
+    agent.set_pos(torch.tensor([[-1.0, 0.0], [-1.0, 2.0]]), batch_index=None)  # doorway, wall
+    agent.set_rot(torch.zeros(2, 1), batch_index=None)
+    for _ in range(60):
+        env.step([torch.tensor([[1.0, 0.0]]).expand(2, 2)])
+    assert agent.state.pos[0, 0] > 1.0
+    assert agent.state.pos[1, 0] < 0.0
