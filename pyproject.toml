@@ -36,3 +36,4 @@ explicit = true
 
 [tool.uv]
 override-dependencies = ["pyglet>=2"]
+link-mode = "hardlink"
