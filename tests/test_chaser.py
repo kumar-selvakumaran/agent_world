@@ -8,7 +8,7 @@ CAMERA = CameraConfig(width=48, height=32)
 
 
 def setup(num_envs=1, **kw):
-    kw = {"n_obstacles": 0, "rotating_patches": False, "camera": CAMERA, **kw}
+    kw = {"n_obstacles": 0, "blocks_per_room": 0, "rotating_patches": False, "camera": CAMERA, **kw}
     env = make_env(num_envs=num_envs, device="cpu", seed=0, config=WorldConfig(**kw))
     env.reset()
     for i in range(len(env.scenario._chasers.landmarks)):

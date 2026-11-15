@@ -26,7 +26,7 @@ from vmas.simulator.utils import ScenarioUtils
 
 from agent_world.camera import CameraConfig, local_ray_directions, world_rays
 from agent_world.chaser import BLACK, NAME as CHASER, STRIPES, Chasers
-from agent_world import food
+from agent_world import blocks, food
 from agent_world.patch import Patch, inside
 from agent_world.raycast import Palette, Scene, render
 
@@ -96,6 +96,12 @@ class WorldConfig:
     spectator: bool = False
     """Add a ghost agent for a human observer. Leave off for training: every
     agent costs one rendered view per step."""
+
+    blocks_per_room: int = 3
+    """Big blue blocks per room, one per strip of the room; 0 for none. Solid for agents;
+    a chaser touching one vanishes and respawns. See :mod:`agent_world.blocks`."""
+    block_size: float = 0.6
+    block_height: float = 0.5
 
     chasers_per_room: int = 2
     """Scripted chasers in each room; 0 turns them off. See :mod:`agent_world.chaser`."""
@@ -203,13 +209,19 @@ class Scenario(BaseScenario):
                 self._add_landmark(world, f"obstacle_{i}", shape, height, color)
             )
 
+        self._blocks = [
+            self._add_landmark(
+                world, f"{blocks.NAME}_{i}", Box(cfg.block_size, cfg.block_size), cfg.block_height, blocks.BLUE
+            )
+            for i in range(cfg.blocks_per_room * cfg.n_rooms)
+        ]
         self._chasers = Chasers(cfg, world, self._patches)
         for c in self._chasers.landmarks:
             self._visible.append((c, cfg.agent_height))
             self._visual_size[c.name] = cfg.agent_size
 
         self._build_static_scene(device)
-        walls_obstacles = [self._index[e.name] for e in self._walls + self._obstacles]
+        walls_obstacles = [self._index[e.name] for e in self._walls + self._obstacles + self._blocks]
         self._occluders = torch.tensor(walls_obstacles, device=device)
         n_food = cfg.food_per_room * cfg.n_rooms
         self._food_xy = torch.zeros(batch_dim, n_food, 2, device=device)
@@ -309,6 +321,14 @@ class Scenario(BaseScenario):
                 batch_index=env_index,
             )
 
+        if self._blocks:
+            block_xy = blocks.place(cfg, n, self.world.device)
+            for i, b in enumerate(self._blocks):
+                b.set_pos(block_xy[:, i], batch_index=env_index)
+        else:
+            block_xy = None
+        clear = (cfg.obstacle_size + cfg.block_size) / 2 * 2**0.5 + 0.1
+
         # Agents start in the first room; obstacles are spread over all rooms.
         margin = cfg.wall_thickness / 2 + cfg.obstacle_size
         y_bounds = (-cfg.arena_height / 2 + margin, cfg.arena_height / 2 - margin)
@@ -322,14 +342,15 @@ class Scenario(BaseScenario):
                     entities,
                     self.world,
                     env_index,
-                    min_dist_between_entities=cfg.obstacle_size + 2 * cfg.agent_radius + 0.1,
+                    min_dist_between_entities=max(cfg.obstacle_size + 2 * cfg.agent_radius + 0.1, clear if self._blocks else 0),
+                    occupied_positions=block_xy,
                     x_bounds=(left + margin, left + cfg.room_size - margin),
                     y_bounds=y_bounds,
                 )
         if cfg.chasers_per_room:
             self._chasers.reset(
                 env_index,
-                self._obstacles,
+                [(self._obstacles, cfg.obstacle_size / 2 + 2 * cfg.agent_radius), (self._blocks, cfg.block_size / 2 * 2**0.5 + 2 * cfg.agent_radius)],
                 lambda room: (-cfg.arena_width / 2 + room * cfg.room_size + margin, -cfg.arena_width / 2 + (room + 1) * cfg.room_size - margin),
                 y_bounds,
             )
@@ -376,7 +397,8 @@ class Scenario(BaseScenario):
         if self.cfg.chasers_per_room:
             s = self.scene()
             o = self._occluders
-            self._chasers.step(Scene(s.pos[:, o], s.rot[:, o], s.half_size[o], s.height[o], s.is_box[o], s.color[o]))
+            block_pos = torch.stack([b.state.pos for b in self._blocks], 1) if self._blocks else None
+            self._chasers.step(Scene(s.pos[:, o], s.rot[:, o], s.half_size[o], s.height[o], s.is_box[o], s.color[o]), block_pos)
 
     def _food(self) -> food.Food | None:
         if self.cfg.food_per_room == 0:
