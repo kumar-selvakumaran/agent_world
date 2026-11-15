@@ -103,7 +103,7 @@ def test_agent_is_a_circle_drawn_as_a_box():
 
 @pytest.mark.parametrize("obstacle", [0, 1])  # a box and a cylinder
 def test_full_speed_agent_does_not_pass_a_static_obstacle(obstacle):
-    cfg = WorldConfig(n_obstacles=2, rotating_patches=False, camera=CAMERA)
+    cfg = WorldConfig(n_obstacles=2, rotating_patches=False, chasers_per_room=0, camera=CAMERA)
     env = make_env(num_envs=1, device="cpu", config=cfg)
     env.reset()
     for o in env.scenario._obstacles:
@@ -134,7 +134,7 @@ def test_full_speed_agent_does_not_cross_a_slanted_wall():
     phi = math.radians(45)
     env = vmas.make_env(
         scenario=Slanted(), num_envs=1, device="cpu",
-        config=WorldConfig(n_obstacles=0, rotating_patches=False, camera=CAMERA),
+        config=WorldConfig(n_obstacles=0, rotating_patches=False, chasers_per_room=0, camera=CAMERA),
     )
     env.reset()
     env.scenario.slant.set_rot(torch.full((1, 1), phi), batch_index=None)
@@ -157,7 +157,7 @@ def test_agents_start_in_the_first_room():
 
 
 def test_full_speed_agent_passes_the_doorway_but_not_the_wall():
-    env = make_env(num_envs=2, device="cpu", config=WorldConfig(n_obstacles=0, rotating_patches=False, camera=CAMERA))
+    env = make_env(num_envs=2, device="cpu", config=WorldConfig(n_obstacles=0, rotating_patches=False, chasers_per_room=0, camera=CAMERA))
     env.reset()
     agent = env.agents[0]
     agent.set_pos(torch.tensor([[-1.0, 0.0], [-1.0, 2.0]]), batch_index=None)  # doorway, wall
@@ -169,7 +169,7 @@ def test_full_speed_agent_passes_the_doorway_but_not_the_wall():
 
 
 def patch_env(num_envs=1):
-    env = make_env(num_envs=num_envs, device="cpu", config=WorldConfig(n_obstacles=0, camera=CAMERA))
+    env = make_env(num_envs=num_envs, device="cpu", config=WorldConfig(n_obstacles=0, chasers_per_room=0, camera=CAMERA))
     env.reset()
     return env, env.scenario._patches[0]
 
