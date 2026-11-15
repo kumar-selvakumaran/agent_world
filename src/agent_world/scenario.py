@@ -25,6 +25,7 @@ from vmas.simulator.scenario import BaseScenario
 from vmas.simulator.utils import ScenarioUtils
 
 from agent_world.camera import CameraConfig, local_ray_directions, world_rays
+from agent_world.chaser import BLACK, NAME as CHASER, STRIPES, Chasers
 from agent_world.patch import Patch, inside
 from agent_world.raycast import Palette, Scene, render
 
@@ -89,6 +90,18 @@ class WorldConfig:
     spectator: bool = False
     """Add a ghost agent for a human observer. Leave off for training: every
     agent costs one rendered view per step."""
+
+    chasers_per_room: int = 2
+    """Scripted chasers in each room; 0 turns them off. See :mod:`agent_world.chaser`."""
+    chaser_speed_fraction: float = 0.7
+    """Chaser speed as a fraction of ``max_speed``; its turn rate is ``max_turn_rate``."""
+    chaser_view_range: float = 5.0
+    chaser_half_fov_deg: float = 60.0
+    bump_distance: float = 0.5
+    """How far a chaser's touch shoves an agent, spread over ``bump_steps`` steps."""
+    bump_steps: int = 3
+    bump_cooldown: float = 1.0
+    """Seconds before the same chaser can bump again."""
 
     agent_radius: float = 0.1
     """Radius of the agent's physics body, a circle. Also used for room bounds and spawn spacing."""
@@ -182,7 +195,14 @@ class Scenario(BaseScenario):
                 self._add_landmark(world, f"obstacle_{i}", shape, height, color)
             )
 
+        self._chasers = Chasers(cfg, world, self._patches)
+        for c in self._chasers.landmarks:
+            self._visible.append((c, cfg.agent_height))
+            self._visual_size[c.name] = cfg.agent_size
+
         self._build_static_scene(device)
+        walls_obstacles = [self._index[e.name] for e in self._walls + self._obstacles]
+        self._occluders = torch.tensor(walls_obstacles, device=device)
         self._local_dirs = local_ray_directions(cfg.camera, device)
         return world
 
@@ -252,6 +272,10 @@ class Scenario(BaseScenario):
         self._is_ghost = torch.tensor(
             [e.name == SPECTATOR_NAME for e, _ in self._visible], device=device
         )
+        self._stripes = torch.tensor(
+            [STRIPES if e.name.startswith(CHASER) else 0 for e, _ in self._visible], device=device
+        )
+        self._color2 = torch.tensor(BLACK, device=device).expand(len(self._visible), 3)
         self._color = torch.tensor(
             [
                 e.color.value if hasattr(e.color, "value") else e.color
@@ -291,6 +315,13 @@ class Scenario(BaseScenario):
                     x_bounds=(left + margin, left + cfg.room_size - margin),
                     y_bounds=y_bounds,
                 )
+        if cfg.chasers_per_room:
+            self._chasers.reset(
+                env_index,
+                self._obstacles,
+                lambda room: (-cfg.arena_width / 2 + room * cfg.room_size + margin, -cfg.arena_width / 2 + (room + 1) * cfg.room_size - margin),
+                y_bounds,
+            )
         for agent in self.world.agents:
             heading = (torch.rand(n, 1, device=self.world.device) * 2 - 1) * torch.pi
             agent.set_rot(heading, batch_index=env_index)
@@ -304,7 +335,15 @@ class Scenario(BaseScenario):
             height=self._height,
             is_box=self._is_box,
             color=self._color,
+            color2=self._color2,
+            stripes=self._stripes,
         )
+
+    def pre_step(self) -> None:
+        if self.cfg.chasers_per_room:
+            s = self.scene()
+            o = self._occluders
+            self._chasers.step(Scene(s.pos[:, o], s.rot[:, o], s.half_size[o], s.height[o], s.is_box[o], s.color[o]))
 
     def view(self, agent: Agent) -> tuple[Tensor, Tensor]:
         """What ``agent`` sees: rgb [B, H, W, 3] in [0, 1] and depth [B, H, W]."""
