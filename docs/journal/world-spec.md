@@ -191,6 +191,24 @@ Added 2026-11-14. Requirements stated by Kumar.
 - **[Open]** Plank width, regrow time and field length, which set the
   difficulty.
 
+## Decisions of 2026-11-14 (later)
+
+- **[Kumar]** The agent body is a box for now. The U-shaped gripper is set
+  aside; concave physics is not needed for the puzzles described above.
+- **[Kumar]** The engine stays VMAS for now, since the puzzles are possible in
+  it. A switch to MuJoCo is not planned.
+- **[Kumar]** Walls may be slanted and flat, so a push produces a normal force
+  that sends the agent back. Block-and-slide is acceptable; a bounce would be
+  better. This replaces the curved wall above.
+- **[Kumar]** The rotating patch is visible to the agent as vision.
+- **[Kumar]** The thorn field is now rendered too. This replaces the earlier
+  statement that it is not rendered.
+- **[Kumar]** Thorn regrowth time is fixed.
+- **[Kumar]** The colour-to-behaviour mapping is standard for now. It should
+  vary a little eventually.
+- **[Open]** How to make the agent's contact with a slanted wall bounce. VMAS
+  contacts are soft penalty forces; to be probed.
+
 ## Status
 
 | Item | Status |
