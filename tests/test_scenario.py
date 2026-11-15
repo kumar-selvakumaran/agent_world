@@ -185,35 +185,43 @@ def place(env, x, y, heading=0.0):
 def test_a_patch_turns_an_idle_agent_clockwise():
     env, patch = patch_env()
     agent = place(env, *patch.center)
-    for _ in range(10):  # one second
+    for _ in range(5):  # half a second
         env.step([torch.zeros(1, 2)])
-    assert -1.2 < agent.state.rot.item() < -0.7
+    assert -1.3 < agent.state.rot.item() < -0.6
 
 
-def test_counter_turning_cancels_the_patch_and_it_acts_only_inside():
-    env, patch = patch_env(num_envs=2)
-    agent = env.agents[0]
-    agent.set_pos(torch.tensor([list(patch.center), [patch.center[0] + 3.0, 0.0]]), batch_index=None)
-    agent.set_rot(torch.zeros(2, 1), batch_index=None)
+def test_counter_steering_cannot_turn_the_agent_anti_clockwise_on_the_patch():
+    env, patch = patch_env()
+    agent = place(env, *patch.center)
+    headings = []
+    for _ in range(20):
+        env.step([torch.tensor([[0.0, 1.0]])])  # full counter-steer
+        headings.append(agent.state.rot.item())
+    assert max(headings) <= 1e-3 and headings[-1] < -0.5  # only slowed
+
+
+def test_the_patch_acts_only_inside():
+    env, patch = patch_env()
+    agent = place(env, patch.center[0] + 3.0, 0.0)
     for _ in range(10):
-        env.step([torch.tensor([[0.0, 0.5], [0.0, 0.0]])])  # +0.5 of the turn range is +1 rad/s
-    assert agent.state.rot[0].abs() < 0.1  # on the patch: cancelled
-    assert agent.state.rot[1].abs() < 1e-3  # off the patch: untouched
+        env.step([torch.zeros(1, 2)])
+    assert agent.state.rot.abs().item() < 1e-3
 
 
-def test_the_doorway_is_crossed_only_by_counter_turning():
-    def cross(counter_turn):
-        env, patch = patch_env()
-        agent = place(env, patch.center[0] - 1.5, 0.0)
-        for _ in range(50):
-            on = bool(inside(agent.state.pos, patch))
-            env.step([torch.tensor([[1.0, 0.5 if (on and counter_turn) else 0.0]])])
-        return agent.state.pos[0]
+def test_the_doorway_is_crossed_by_turning_before_the_patch_and_slowing_the_spin():
+    env, _ = patch_env()
+    agent = place(env, -0.95, -0.9)  # just off the patch, where steering is free
+    for _ in range(45):
+        env.step([torch.tensor([[1.0, 1.0]])])
+    assert agent.state.pos[0, 0] > 1.0  # through the doorway into the second room
 
-    straight = cross(counter_turn=True)
-    assert straight[0] > 1.1 and straight[1].abs() < 0.3
-    thrown = cross(counter_turn=False)
-    assert thrown[0] < 1.1 or thrown[1].abs() > 0.5
+
+def test_without_steering_the_patch_keeps_an_agent_circling():
+    env, patch = patch_env()
+    agent = place(env, patch.center[0] - 1.5, 0.0)
+    for _ in range(60):
+        env.step([torch.tensor([[1.0, 0.0]])])
+    assert agent.state.pos[0, 0] < 1.0
 
 
 def test_the_patch_is_visible_to_the_agent():

@@ -82,9 +82,10 @@ class WorldConfig:
     """Put a rotating patch in every doorway."""
     patch_radius: float = 1.0
     """Ten agent widths across."""
-    patch_rate: float = -1.0
+    patch_rate: float = -2.5
     """Turn rate inside a patch, in radians per second; negative is clockwise.
-    Keep it below ``max_turn_rate`` so an agent can beat it."""
+    Above ``max_turn_rate`` on purpose: an agent on the patch cannot turn
+    counter-clockwise, it can only slow the clockwise turn."""
     spectator: bool = False
     """Add a ghost agent for a human observer. Leave off for training: every
     agent costs one rendered view per step."""

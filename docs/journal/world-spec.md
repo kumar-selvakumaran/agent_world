@@ -241,6 +241,18 @@ Added 2026-11-14.
 - **[Open]** At 64x48 the ring and arrows are only a few pixels from 2.5 units
   away; the pink disc is clear.
 
+### Stronger patch (later on 2026-11-14)
+
+- **[Kumar]** The patch should be stronger than the agent can turn back, so an
+  agent on it cannot turn anti-clockwise, but not so fast that it is
+  incomprehensible. The way through is to work with the spin.
+- **[Built]** The rate is now 2.5 rad/s (143 degrees per second) against the
+  agent's limit of 2. Full counter-steering still turns it clockwise at 0.5.
+- **[Built]** The doorway is crossed by turning left while still off the patch,
+  entering at an angle, and slowing the spin on it. A search of 780
+  entry and command combinations found 157 that cross through the doorway.
+- **[Open]** The value 2.5 is a proposal, to be confirmed.
+
 ## Status
 
 | Item | Status |
