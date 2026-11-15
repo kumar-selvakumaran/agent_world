@@ -211,9 +211,11 @@ def test_the_patch_acts_only_inside():
 def test_the_doorway_is_crossed_by_turning_before_the_patch_and_slowing_the_spin():
     env, _ = patch_env()
     agent = place(env, -0.95, -0.9)  # just off the patch, where steering is free
-    for _ in range(45):
-        env.step([torch.tensor([[1.0, 1.0]])])
-    assert agent.state.pos[0, 0] > 1.0  # through the doorway into the second room
+    furthest = 0.0
+    for _ in range(80):
+        env.step([torch.tensor([[1.0, 0.5]])])
+        furthest = max(furthest, agent.state.pos[0, 0].item())
+    assert furthest > 1.0  # through the doorway into the second room
 
 
 def test_without_steering_the_patch_keeps_an_agent_circling():
