@@ -222,6 +222,9 @@ Added 2026-11-14. Requirements stated by Kumar.
   learns to avoid them from having been hurt.
 - **[Proposed]** Pain and the agent's own motion (speed, turn rate) reach it as
   a separate non-image observation. Not yet agreed.
+- **[Kumar]** Pain and the agent's own motion are a separate observation from the
+  image (confirmed later on 2026-11-14).
+- **[Open]** How that separate observation is exposed to the agent.
 
 ## Status
 
