@@ -234,6 +234,31 @@ with building an environment to test such systems.
   verified change Kumar wants to be told, to try it in the explorer.
 - **[Kumar]** Journey and rules: this file is updated after every effort.
 
+## 13. Chasers and food (2026-11-14, later)
+
+- **[Built]** Scripted chasers: two per room, red and black striped, 0.7 of the
+  agent's speed. They see only within 5 units, 60 degrees and a clear line of
+  sight, stop when they lose sight, are spun by the patch, and bump an agent
+  they touch by 0.5 units over 3 steps with a 1 s cooldown.
+- **[Built]** Food: 24 ochre discs per room painted on the floor, eaten by
+  touching, respawning after 5 s. About 6.6 discs are in view on average.
+- **[Built]** The patch arrowheads are twice as big, inside the disc.
+  **[Kumar]** The patch turn rate of 2.5 rad/s feels right.
+- **[Built]** Project paths in `config.py`, hard-linked environments, and a
+  `.dockerignore`.
+- **[Built]** Found and fixed a crash on reset with food switched off.
+- Chasers and food were built in parallel in separate git worktrees, then merged
+  one at a time. Merging them exposed a flaky test: chasers bumped the agent in
+  contact tests, so those tests now switch chasers off.
+- **[Built]** Throughput at 256 worlds is about 300 to 400 world-steps/s. The
+  chasers cost the most (more than half), then the 5 substeps (about a half).
+  Food and the patch cost almost nothing. Measured while the explorer may have
+  been running.
+- **[Kumar]** The scenario code is to be split into a package (layout B: VMAS
+  adapters in `scenario/`, pure behaviours outside). **[Open]** Not yet done.
+- **[Open]** Blue blocks that make a touching chaser respawn far away; making
+  the chasers cheaper.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.

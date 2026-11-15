@@ -298,6 +298,10 @@ Added 2026-11-14.
 - **[Open]** At 64x48 a disc is only a pixel or two beyond about a unit away.
 - **[Open]** Eating gives nothing yet; energy is not built.
 
+### Patch rate confirmed (later on 2026-11-14)
+
+- **[Kumar]** The patch turn rate of 2.5 rad/s feels right.
+
 ## Status
 
 | Item | Status |
