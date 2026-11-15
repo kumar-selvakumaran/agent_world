@@ -240,3 +240,56 @@ def test_chasers_are_counted_per_room_and_can_be_turned_off():
     env.reset()
     env.step([torch.zeros(2, 2)])
     assert not env.scenario._chasers.landmarks
+
+
+def food_env(**kw):
+    cfg = WorldConfig(camera=CAMERA, food_respawn_time=0.5, **kw)
+    env = make_env(num_envs=2, seed=0, config=cfg)
+    env.reset()
+    return env, env.scenario
+
+
+def still(env):
+    return [torch.zeros(2, 2, device=env.device) for _ in env.agents]
+
+
+def test_agent_eats_food_and_it_respawns_in_same_room():
+    env, sc = food_env()
+    agent = env.agents[0]
+    sc._food_xy[:, 0] = agent.state.pos
+    old_room = sc._food_xy[:, 0, 0] > 0
+    env.step(still(env))
+    assert (sc._food_timer[:, 0] > 0).all()
+    assert not sc._food().active[:, 0].any()
+    for _ in range(6):
+        env.step(still(env))
+    assert (sc._food_timer[:, 0] == 0).all()
+    assert (sc._food_xy[:, 0] - agent.state.pos).norm(dim=-1).min() > 1e-3
+    assert ((sc._food_xy[:, 0, 0] > 0) == old_room).all()
+
+
+def test_ghost_does_not_eat():
+    env, sc = food_env(spectator=True)
+    ghost = env.agents[-1]
+    sc._food_xy[:, 0] = ghost.state.pos
+    env.step(still(env))
+    assert (sc._food_timer[:, 0] == 0).all()
+
+
+def test_reset_restores_food():
+    env, sc = food_env()
+    sc._food_timer[:] = 3.0
+    env.reset_at(0)
+    assert (sc._food_timer[0] == 0).all() and (sc._food_timer[1] == 3.0).all()
+    env.reset()
+    assert (sc._food_timer == 0).all()
+
+
+def test_food_visible_to_agent():
+    env, sc = food_env()
+    agent = env.agents[0]
+    heading = agent.state.rot
+    sc._food_xy[:] = (agent.state.pos + 0.5 * torch.cat((heading.cos(), heading.sin()), -1))[:, None]
+    rgb = sc.view(agent)[0]
+    ochre = torch.tensor((0.80, 0.58, 0.12), device=env.device)
+    assert ((rgb - ochre).abs().sum(-1) < 0.05).flatten(1).any(1).all()

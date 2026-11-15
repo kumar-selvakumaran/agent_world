@@ -283,6 +283,20 @@ Added 2026-11-14.
 - **[Open]** Health and damage from a bump (`touched` is the hook).
 - **[Open]** Chasers can push each other and obstacles; whether they should is
   undecided. Chasers cannot be seen through low obstacles (all block the ray).
+## Food
+
+Added 2026-11-14.
+
+- **[Built]** Ochre yellow floor discs of radius 0.08, painted by the ray caster, not entities.
+- **[Built]** Eaten when a non-ghost agent's centre is within agent radius plus food radius;
+  the disc vanishes at once and reappears at a new random spot in the same room after 5 s,
+  so density stays constant. The ghost does not eat. Reset restores all food.
+- **[Built]** 24 per room, from a probe over random positions and headings: about 6.6 discs in the
+  60 degree, 5 unit view wedge on average (16 gave 4.4, 32 gave 8.8), ignoring occlusion.
+- **[Open]** Food is placed uniformly, so some sits under an obstacle and cannot be reached
+  until it respawns.
+- **[Open]** At 64x48 a disc is only a pixel or two beyond about a unit away.
+- **[Open]** Eating gives nothing yet; energy is not built.
 
 ## Status
 
@@ -296,7 +310,7 @@ Added 2026-11-14.
 | Runs on GPU when available | **[Built]**, not yet run on a GPU |
 | Benchmark script and instructions | **[Built]** |
 | Tasks and reward (reward is currently zero) | Not started |
-| Food, energy, pain, death | Not started |
+| Food, energy, pain, death | Food **[Built]**; the rest not started |
 | Rooms, doors, risk gradient | Not started |
 | Scripted agents with hidden inclinations | Not started |
 | Procedural generation beyond random placement | Not started |
