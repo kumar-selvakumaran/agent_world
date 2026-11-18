@@ -393,6 +393,15 @@ with building an environment to test such systems.
 - **[Kumar]** From now on questions are asked with the question wizard. **[Open]** Building
   the floor, and a sky.
 
+## 24. Floor samples and the sky (2026-11-18)
+
+- **[Kumar]** Asked to see samples of the map floor before it is built. Made six top-down
+  crops from three maps and six agent views, in `scratch/` (not in the repository).
+- **[Kumar]** Chose rectangle sections of at most 10% of an arena, 3 to 4 per arena, instead
+  of 10% of the whole map, which filled whole episodes with one flat area.
+- **[Kumar]** Deferred the sky map. **[Open]** Waiting for Kumar's look at the updated
+  samples before building the floor.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.

@@ -427,6 +427,10 @@ not (from the hjepa_agent session, confirmed by Kumar).
   path integration is cleaner than in reality.
 - **[Proposed]** A sky map is deferred: with this camera the top row is the horizon, so a
   sky shows in only a few pixels, and a sky fixed to world direction would be a compass.
+- **[Kumar]** Defer the sky map (decided 2026-11-18). Measured over 256 random poses, only
+  0.06% of pixels are sky and only 18% of views contain any, all in the top three rows. A sky
+  map would cost about 1 MB and a few milliseconds per step, but it would be almost invisible
+  with this camera and, fixed to world direction, would act as a compass.
 - **[Kumar]** The rotating patch, lighting and obstacle colours give no global cue: keep.
 
 ## Status
