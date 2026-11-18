@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 dependencies = [
+    "pillow>=12.3.0",
     "torch>=2.0",
     "vmas>=1.5.2",
 ]
@@ -13,7 +14,6 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=8",
-    "pillow>=10",
 ]
 
 [build-system]

@@ -15,28 +15,26 @@ name = "agent-world"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "pillow", version = "12.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pillow", version = "13.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "torch" },
     { name = "vmas" },
 ]
 
 [package.dev-dependencies]
 dev = [
-    { name = "pillow", version = "12.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "pillow", version = "13.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pytest" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "pillow", specifier = ">=12.3.0" },
     { name = "torch", specifier = ">=2.0", index = "https://download.pytorch.org/whl/cu128" },
     { name = "vmas", specifier = ">=1.5.2" },
 ]
 
 [package.metadata.requires-dev]
-dev = [
-    { name = "pillow", specifier = ">=10" },
-    { name = "pytest", specifier = ">=8" },
-]
+dev = [{ name = "pytest", specifier = ">=8" }]
 
 [[package]]
 name = "cloudpickle"
