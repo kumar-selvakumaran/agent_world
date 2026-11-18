@@ -15,6 +15,7 @@ modules.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field, fields
 
 import torch
@@ -27,6 +28,7 @@ from vmas.simulator.utils import ScenarioUtils
 from agent_world.camera import CameraConfig, local_ray_directions, world_rays
 from agent_world.chaser import BLACK, NAME as CHASER, STRIPES, Chasers
 from agent_world import blocks, food
+from agent_world.floor import Floor
 from agent_world.patch import Patch, inside
 from agent_world.raycast import Palette, Scene, render
 
@@ -88,6 +90,12 @@ class WorldConfig:
     """Turn rate inside a patch, in radians per second; negative is clockwise.
     Above ``max_turn_rate`` on purpose: an agent on the patch cannot turn
     counter-clockwise, it can only slow the clockwise turn."""
+    floor: str = "map"
+    """"map": a large precomputed map of circles and rectangle sections with no global
+    direction, cropped per world; "checker": the old checkerboard."""
+    floor_map_seed: int = 0
+    """Which floor map to build. A different seed is a different map, for held-out tests;
+    each episode still picks its own random window into it."""
     food_per_room: int = 24
     """Food discs on the floor of each room; 0 for none."""
     food_radius: float = 0.08
@@ -226,6 +234,13 @@ class Scenario(BaseScenario):
         n_food = cfg.food_per_room * cfg.n_rooms
         self._food_xy = torch.zeros(batch_dim, n_food, 2, device=device)
         self._food_timer = torch.zeros(batch_dim, n_food, device=device)
+        if cfg.floor not in ("map", "checker"):
+            raise ValueError(f"floor must be 'map' or 'checker', not {cfg.floor!r}")
+        self._floor = (
+            Floor.create(batch_dim, device, math.hypot(cfg.arena_width, cfg.arena_height) / 2 + 0.1, cfg.floor_map_seed)
+            if cfg.floor == "map"
+            else None
+        )
         self._local_dirs = local_ray_directions(cfg.camera, device)
         return world
 
@@ -311,6 +326,8 @@ class Scenario(BaseScenario):
     def reset_world_at(self, env_index: int | None = None) -> None:
         cfg = self.cfg
         n = self.world.batch_dim if env_index is None else 1
+        if self._floor is not None:
+            self._floor.reseed(env_index)
 
         for wall, (pos, rot, _) in zip(self._walls, self._wall_specs):
             wall.set_pos(
@@ -416,7 +433,8 @@ class Scenario(BaseScenario):
         visible = ~self._is_ghost
         visible[self._index[agent.name]] = True
         rgb, depth = render(
-            origin, dirs, self.scene(), cam.max_range, self.cfg.palette, visible, self._patches, self._food()
+            origin, dirs, self.scene(), cam.max_range, self.cfg.palette, visible, self._patches, self._food(),
+            self._floor,
         )
         batch = rgb.shape[0]
         return (

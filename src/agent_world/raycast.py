@@ -16,6 +16,7 @@ import torch
 from torch import Tensor
 
 from agent_world.food import Food, paint as paint_food
+from agent_world.floor import Floor
 from agent_world.patch import Patch, paint
 
 _EPS = 1e-6
@@ -133,6 +134,7 @@ def render(
     visible: Tensor | None = None,
     patches: tuple[Patch, ...] = (),
     food: Food | None = None,
+    floor: Floor | None = None,
 ) -> tuple[Tensor, Tensor]:
     """Colour and depth seen along each ray.
 
@@ -140,6 +142,7 @@ def render(
         visible: optional [E] bool mask; entities marked False are not drawn.
         patches: floor patches painted over the checkerboard.
         food: floor food painted over the ground.
+        floor: the ground's colours; the checkerboard when None.
 
     Returns:
         rgb [B, P, 3] in [0, 1] and depth [B, P], clipped to ``max_range``.
@@ -153,12 +156,15 @@ def render(
     t_ground = -origin[:, None, 2] / _safe(dirs[..., 2])
     t_ground = torch.where(t_ground > 0, t_ground, _INF)
     ground_xy = origin[:, None, :2] + t_ground.nan_to_num(posinf=0.0)[..., None] * dirs[..., :2]
-    tiles = torch.floor(ground_xy / palette.tile).sum(-1) % 2 == 0
-    ground_rgb = torch.where(
-        tiles[..., None],
-        origin.new_tensor(palette.ground_a),
-        origin.new_tensor(palette.ground_b),
-    )
+    if floor is None:
+        tiles = torch.floor(ground_xy / palette.tile).sum(-1) % 2 == 0
+        ground_rgb = torch.where(
+            tiles[..., None],
+            origin.new_tensor(palette.ground_a),
+            origin.new_tensor(palette.ground_b),
+        )
+    else:
+        ground_rgb = floor.colour(ground_xy)
 
     for patch in patches:
         ground_rgb = paint(ground_xy, patch, ground_rgb)
