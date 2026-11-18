@@ -401,6 +401,34 @@ Added 2026-11-15.
 - **[Open]** Whether any existing environment is a contender in this sense. A survey
   found none that combines all of it; see [contenders.md](contenders.md).
 
+## The floor and signal shortcuts
+
+Added 2026-11-18, from a review of which signals the world exposes that the real world does
+not (from the hjepa_agent session, confirmed by Kumar).
+
+- **[Built]** The checkerboard floor shows, from one frame, the agent's heading modulo 90
+  degrees (the angle of the tile edges) and its position modulo the tile size. A probe in
+  hjepa_agent read it at R2 0.88 from patch features and 0.90 from raw pixels. **[Unverified]**
+  here: those results come from another repository.
+- **[Kumar]** Replace the default floor with a "map floor" that shows motion but has no
+  global frame, and keep the checkerboard as an option so models can be compared with and
+  without it. **[Open]** Not built yet.
+- **[Kumar]** The map floor: a base of big circles, small discs and fine dots with thick
+  outlines, a few large sections of overlapping rotated rectangles on top (some hollow),
+  cropped per world from one precomputed map about 30 times the arena's area (62 by 62 units),
+  with a fixed map per run and a random crop and rotation each episode. Prototype results:
+  preferred-direction score 0.06 (checkerboard 0.85); motion as visible as the checkerboard.
+- **[Kumar]** Walls and unrotated box obstacles stay as they are: axis-aligned walls are a
+  local cue, and real buildings are rectilinear too.
+- **[Kumar]** Future scope: a floor current with a fixed direction would act as a compass;
+  offer it as a mode. A model smart enough to remember that a place can serve as a compass
+  is a good thing, and changing the direction regularly could be the next challenge.
+- **[Kumar]** Future scope: actuation noise, since motion now follows commands exactly and
+  path integration is cleaner than in reality.
+- **[Proposed]** A sky map is deferred: with this camera the top row is the horizon, so a
+  sky shows in only a few pixels, and a sky fixed to world direction would be a compass.
+- **[Kumar]** The rotating patch, lighting and obstacle colours give no global cue: keep.
+
 ## Status
 
 | Item | Status |

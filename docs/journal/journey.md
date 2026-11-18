@@ -377,6 +377,22 @@ with building an environment to test such systems.
   world and the known tension between curiosity and discomfort with uncertainty.
 - **[Open]** Defining health, hunger and pain in the world.
 
+## 23. Signal shortcuts and a new floor (2026-11-18)
+
+- A proposal from the hjepa_agent session (a world model trained on this world) found that
+  the checkerboard floor leaks a compass: heading modulo 90 degrees and position modulo the
+  tile size. **[Kumar]** The intention is a world that exposes signals the way the real world
+  does but more simply, and with no compass. Recorded in [principles.md](principles.md).
+- **[Kumar]** Chose a map floor to replace the checkerboard by default: circles and fine dots,
+  rotated-rectangle sections, one precomputed 62 by 62 map cropped per world. Prototyped in
+  `scratch/`: no preferred direction, motion as visible as the checkerboard, about 1 ms to seed
+  1,024 worlds and about 3 ms per step for the lookup at 256 worlds. See
+  [world-spec.md](world-spec.md).
+- Existing skin packs were checked: none fits (photoreal textures, tile lattices, or tied to
+  other simulators), so we keep our own generator.
+- **[Kumar]** From now on questions are asked with the question wizard. **[Open]** Building
+  the floor, and a sky.
+
 ## Open threads
 
 - **[Open]** Picture or entity list as the observation.
