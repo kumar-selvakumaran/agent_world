@@ -102,3 +102,20 @@ When these conflict, simplicity and compute win over features.
 - **Ask with the question wizard.** **[Kumar]** Questions are asked with the question
   wizard (a dialog of options), the default as the first option, marked Recommended.
   Concerns and blockers stay as indexed text, each with a default.
+
+## Signals like the real world, but simpler
+
+- **[Kumar]** The intention, as relayed by the hjepa_agent session and confirmed by Kumar on
+  2026-11-18:
+
+  > The world should be as simple as possible, while exposing signals in the same *way* the
+  > real world does, but with less complexity. For example: there are dynamic objects, as in
+  > the real world; most objects are unambiguously distinguishable (eventually there will be
+  > unique objects and landmarks); but textures, geometry and resolution are simple, so a
+  > simpler encoder can learn the world and probes stay interpretable ("educational").
+  > Location must be disambiguated the way people do it: without a compass, by tracking many
+  > co-existing signals jointly, as in how we navigate and localise (memory, the co-existence
+  > of signals from objects assumed static, motion estimated from one's own actions).
+
+- **[Built]** Found by that session: the checkerboard floor shows heading modulo 90 degrees
+  and position modulo the tile size from a single frame. See [world-spec.md](world-spec.md).
