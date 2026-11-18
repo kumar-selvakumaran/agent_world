@@ -141,7 +141,7 @@ the agent.
 
 ![What an agent sees as it drives](docs/media/view.gif)
 
-*The agent's own 64x48 view, enlarged: the checkered floor, food discs, an obstacle, big blue blocks, a wall and the pink patch.*
+*The agent's own 64x48 view, enlarged: the map floor (circles and rectangle sections, no preferred direction), food discs, an obstacle, big blue blocks, a wall and the pink patch.*
 
 ### The spectator
 
