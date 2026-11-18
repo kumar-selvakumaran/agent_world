@@ -13,8 +13,9 @@ Standing rules (the full list is in `docs/journal/principles.md`):
 - Pull requests: push the branch and open a PR into `develop` (or the branch it stacks on) with `gh pr create`;
   description: what, why, how verified, what is not covered. Only Kumar reviews and merges. After a lower PR merges,
   retarget the PR stacked on it to `develop`.
-- Pushing: safe, verified, secret-free code may be pushed. Journals and docs need Kumar's confirmation before they
-  enter git. Never force-push. Never delete branches.
+- Pushing: safe, verified, secret-free code may be pushed. Journals may be pushed without review once scanned clean of
+  secrets and identifying information (name replaced by a role, GPU model generic); verify before the push. Never
+  force-push. Never delete branches.
 - Code reaches GitHub from the code-only clone `../agent_world_worktrees/code-only` (`develop`, no docs/journal); after
   a PR merges, cherry-pick it into the local working repository, which also holds the journals.
 - `main` on GitHub is the default branch and stays blank until reviewed content is merged into it through a PR.
