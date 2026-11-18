@@ -99,3 +99,6 @@ When these conflict, simplicity and compute win over features.
 - **Say when to look.** **[Kumar]** After each verified change is merged, tell
   Kumar so he can try it in the explorer
   (`uv run python scripts/explore.py --scale 12`).
+- **Ask with the question wizard.** **[Kumar]** Questions are asked with the question
+  wizard (a dialog of options), the default as the first option, marked Recommended.
+  Concerns and blockers stay as indexed text, each with a default.
